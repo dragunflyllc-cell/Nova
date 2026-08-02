@@ -2,22 +2,24 @@ import type { CharacterStage } from "@nova/types";
 import { totalXpForLevel } from "@nova/nova-dex";
 import styles from "./CharacterCard.module.css";
 import { CharacterPortrait } from "./CharacterPortrait";
-import { TIER_LABEL, powerIndex, tickerFor } from "../lib/ticker";
+import { TIER_LABEL, tickerFor } from "../lib/ticker";
 
-const STAT_FIELDS: [key: keyof CharacterStage["stats"], label: string][] = [
-  ["impulsivity", "Impulse"],
-  ["patience", "Patience"],
-  ["discipline", "Discipline"],
-  ["riskManagement", "Risk Mgmt"],
-  ["consistency", "Consist."],
-  ["emotionalControl", "Emo. Ctrl"],
+const STAT_FIELDS: [key: keyof CharacterStage["stats"], label: string, color: string][] = [
+  ["impulsivity", "Impulse", "#4fd1ff"],
+  ["patience", "Patience", "#7c6ef6"],
+  ["discipline", "Discipline", "#a855f7"],
+  ["riskManagement", "Risk Mgmt", "#6366f1"],
+  ["consistency", "Consist.", "#3b82f6"],
+  ["emotionalControl", "Emo. Ctrl", "#818cf8"],
 ];
+
+const HOLO_TIERS = new Set(["rare", "epic", "legendary"]);
 
 export interface CharacterCardProps {
   stage: CharacterStage;
   /** 1-based position within the family, used for the card's dex chip (e.g. "003-2"). */
   dexNumber?: number;
-  /** When provided (an owned, leveling instance) shows a level/XP row instead of the static unlock line. */
+  /** When provided (an owned, leveling instance) shows a level/XP row instead of the static dex chip. */
   level?: number;
   xp?: number;
 }
@@ -26,129 +28,95 @@ export function CharacterCard({ stage, dexNumber, level, xp }: CharacterCardProp
   const tierVar = `var(--tier-${stage.rarity})`;
   const topAbility = stage.abilities[0];
   const dexChip = dexNumber !== undefined ? `${String(dexNumber).padStart(3, "0")}-${stage.stageIndex + 1}` : undefined;
-  const unlockLabel = stage.stageIndex === 0 ? "Starting form" : `Lv. ${stage.unlock.level}`;
+  const topStrength = stage.strengths[0];
+  const topWeakness = stage.weaknesses[0];
+  const isOwned = level !== undefined && xp !== undefined;
+  const holo = HOLO_TIERS.has(stage.rarity);
 
   return (
-    <div className={styles.card} style={{ ["--tier-color" as string]: tierVar }}>
-      <div className={styles.body}>
-        <div className={styles.top}>
-          <div>
-            <div className={styles.name}>{stage.name}</div>
-            <div className={styles.title}>{stage.title}</div>
-          </div>
-          <span className={styles.hpBadge}>
-            <span>PWR</span>
-            <span>{powerIndex(stage.abilities)}</span>
-          </span>
-        </div>
-
-        <div className={styles.subhead}>
-          <span className={styles.tierPill}>
-            <span className={styles.tierDot} />
-            {TIER_LABEL[stage.rarity]}
-          </span>
-          <span className={styles.tickerCode}>${tickerFor(stage.name)}</span>
-        </div>
-
-        <div className={styles.portraitWindow}>
+    <div
+      className={styles.card}
+      data-holo={holo || undefined}
+      style={{ ["--tier-color" as string]: tierVar }}
+      title={stage.flavorText}
+    >
+      <div className={styles.frame}>
+        <div className={styles.artLayer}>
           <CharacterPortrait stageId={stage.id} name={stage.name} />
-          {dexChip ? <span className={styles.dexChip}>{dexChip}</span> : null}
         </div>
+        <div className={styles.scrimTop} />
+        <div className={styles.scrimBottom} />
+        {holo ? <div className={styles.holoLayer} /> : null}
+        <span className={styles.gemBadge} />
 
-        <span className={styles.sectorTag}>
-          {stage.archetype} · {unlockLabel}
-        </span>
-
-        {level !== undefined && xp !== undefined ? <LevelProgress level={level} xp={xp} /> : null}
-
-        {topAbility ? (
-          <div className={styles.abilityBox}>
-            <div className={styles.abilityLine}>
-              <span className={styles.energyIcon} />
-              <span className={styles.abilityName}>{topAbility.name}</span>
-              <span className={styles.abilityPwr}>{topAbility.power}</span>
+        <div className={styles.content}>
+          <div className={styles.headerRow}>
+            {isOwned ? (
+              <span className={styles.levelTag}>Lv. {level}</span>
+            ) : dexChip ? (
+              <span className={styles.dexNo}>No. {dexChip}</span>
+            ) : (
+              <span />
+            )}
+            <div className={styles.tagStack}>
+              <span className={styles.archetypeTag}>{stage.archetype}</span>
+              <span className={styles.rarityTag}>{TIER_LABEL[stage.rarity]}</span>
             </div>
-            <div className={styles.abilityDesc}>{topAbility.description}</div>
           </div>
-        ) : null}
 
-        <div className={styles.statChart}>
-          <div className={styles.statChartTitle}>Trading DNA</div>
-          <div className={styles.statGrid}>
-            {STAT_FIELDS.map(([key, label]) => (
-              <div className={styles.statRow} key={key}>
-                <span className={styles.statRowHead}>
-                  <span>{label}</span>
-                  <span className={styles.statVal}>{stage.stats[key]}</span>
-                </span>
-                <span className={styles.statTrack}>
-                  <span className={styles.statFill} style={{ width: `${stage.stats[key]}%` }} />
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+          <div className={styles.spacer} />
 
-        <div className={styles.edgeRow}>
-          <div className={styles.edgeCol}>
-            <span className={styles.edgeLabel}>Strengths</span>
-            <ModifierChips list={stage.strengths} kind="gain" />
-          </div>
-          <div className={styles.edgeCol}>
-            <span className={styles.edgeLabel}>Weaknesses</span>
-            <ModifierChips list={stage.weaknesses} kind="loss" />
-          </div>
-        </div>
-
-        <div className={styles.flavorBox}>
-          <p className={styles.flavorText}>{stage.flavorText}</p>
-          {dexChip ? (
-            <div className={styles.cardFooter}>
-              <span>No. {dexChip}</span>
-              <span>Illus. Nova AI</span>
+          {isOwned ? (
+            <div className={styles.xpTrack}>
+              <span className={styles.xpFill} style={{ width: `${xpProgressPct(level, xp)}%` }} />
             </div>
           ) : null}
+
+          <div className={styles.footerBlock}>
+            <div className={styles.nameRow}>
+              <div>
+                <div className={styles.name}>{stage.name}</div>
+                <div className={styles.titleLine}>{stage.title}</div>
+              </div>
+              <span className={styles.tickerCode}>${tickerFor(stage.name)}</span>
+            </div>
+
+            {topAbility ? (
+              <div className={styles.abilityCallout}>
+                <span className={styles.abilityLabel}>Signature Ability</span>
+                <div className={styles.abilityLine}>
+                  <span className={styles.abilityName}>{topAbility.name}</span>
+                  <span className={styles.abilityPwr}>{topAbility.power}</span>
+                </div>
+              </div>
+            ) : null}
+
+            <div className={styles.statDots}>
+              {STAT_FIELDS.map(([key, label, color]) => (
+                <div className={styles.statCell} key={key}>
+                  <span className={styles.statDot} style={{ background: color }} />
+                  <span className={styles.statLabel}>{label}</span>
+                  <span className={styles.statVal}>{stage.stats[key]}</span>
+                </div>
+              ))}
+            </div>
+
+            {topStrength || topWeakness ? (
+              <div className={styles.edgeLine}>
+                {topStrength ? <span className={styles.edgeGain}>▲ {topStrength.label}</span> : <span />}
+                {topWeakness ? <span className={styles.edgeLoss}>▼ {topWeakness.label}</span> : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function ModifierChips({ list, kind }: { list: { label: string; xpModifierPct: number }[]; kind: "gain" | "loss" }) {
-  if (list.length === 0) {
-    return (
-      <span className={`${styles.modifierChip} ${styles[kind]}`} style={{ opacity: 0.4 }}>
-        None yet
-      </span>
-    );
-  }
-  return (
-    <div className={styles.modifierRow}>
-      {list.map((m) => (
-        <span className={`${styles.modifierChip} ${styles[kind]}`} key={m.label}>
-          {kind === "gain" ? "+" : ""}
-          {m.xpModifierPct}% {m.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function LevelProgress({ level, xp }: { level: number; xp: number }) {
+function xpProgressPct(level: number, xp: number): number {
   const currentFloor = totalXpForLevel(level);
   const nextFloor = totalXpForLevel(level + 1);
   const span = nextFloor - currentFloor;
-  const progressPct = span > 0 ? Math.min(100, Math.max(0, ((xp - currentFloor) / span) * 100)) : 100;
-
-  return (
-    <div>
-      <div className={styles.levelRow}>
-        <span>Lv. {level}</span>
-        <span>{xp.toLocaleString()} XP</span>
-      </div>
-      <div className={styles.xpTrack}>
-        <span className={styles.xpFill} style={{ width: `${progressPct}%` }} />
-      </div>
-    </div>
-  );
+  return span > 0 ? Math.min(100, Math.max(0, ((xp - currentFloor) / span) * 100)) : 100;
 }

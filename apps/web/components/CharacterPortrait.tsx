@@ -30,7 +30,7 @@ export function CharacterPortrait({ stageId, name }: { stageId: string; name: st
   if (failed) {
     return (
       <div className={styles.portraitFallback}>
-        <span>${tickerFor(name)}</span>
+        <span className={styles.portraitGhostNumeral}>{tickerFor(name)}</span>
       </div>
     );
   }
