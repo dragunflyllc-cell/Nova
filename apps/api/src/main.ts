@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 import { characterFamilies, characterStages } from "@nova/nova-dex";
 import { env } from "./env.js";
 import { authRoutes } from "./routes/auth.js";
+import { brokerRoutes } from "./routes/brokers.js";
 import { characterRoutes } from "./routes/characters.js";
 
 const app = Fastify({ logger: true });
@@ -24,6 +25,7 @@ app.get("/novadex/characters", async () => characterStages);
 
 app.register(authRoutes);
 app.register(characterRoutes);
+app.register(brokerRoutes);
 
 app.listen({ port: env.PORT, host: "0.0.0.0" }).catch((err) => {
   app.log.error(err);

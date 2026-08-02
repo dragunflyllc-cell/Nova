@@ -40,8 +40,12 @@ pnpm typecheck     # typecheck all packages
 pnpm build
 ```
 
+Run `apps/api`'s tests with `pnpm --filter @nova/api test`.
+
 See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how auth (email/password,
-JWT access + rotating refresh tokens) is wired up.
+JWT access + rotating refresh tokens) and broker integrations (Tradovate first,
+behind a provider-agnostic adapter) are wired up — including what's actually
+verified there versus still assumed.
 
 ## The NovaDex
 

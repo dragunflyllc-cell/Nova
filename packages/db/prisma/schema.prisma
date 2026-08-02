@@ -24,10 +24,57 @@ model User {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
-  refreshTokens RefreshToken[]
-  characters    UserCharacter[]
+  refreshTokens     RefreshToken[]
+  characters        UserCharacter[]
+  brokerConnections BrokerConnection[]
 
   @@map("users")
+}
+
+enum BrokerProvider {
+  TRADOVATE
+}
+
+/// One user's link to one broker account. Tokens are stored encrypted
+/// (see apps/api/src/security/encryption.ts) — never in plaintext.
+model BrokerConnection {
+  id           String         @id @default(uuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     BrokerProvider
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  fills BrokerFill[]
+
+  @@unique([userId, provider])
+  @@map("broker_connections")
+}
+
+/// A single raw execution pulled from a broker, stored as close to the
+/// source shape as practical. Deliberately NOT the same thing as a "trade"
+/// (a closed round-trip position) — matching fills into P&L-bearing trades
+/// is real accounting logic (FIFO/LIFO, partials) that hasn't been built
+/// yet. This table exists so that work has verified real data to build against.
+model BrokerFill {
+  id               String           @id @default(uuid())
+  connectionId     String
+  connection       BrokerConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  externalFillId   String
+  contractSymbol   String
+  side             String
+  quantity         Int
+  price            Float
+  filledAt         DateTime
+  raw              Json
+  createdAt        DateTime         @default(now())
+
+  @@unique([connectionId, externalFillId])
+  @@index([connectionId])
+  @@map("broker_fills")
 }
 
 /// A user's captured instance of a NovaDex family (e.g. "the Monkey Line").

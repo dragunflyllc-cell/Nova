@@ -70,6 +70,48 @@ callers, not the source of truth. Email/password only for now.
 No email verification or password reset flow yet — first thing to add before
 this is user-facing.
 
+## Broker integrations
+
+Nova is futures-focused, predominantly prop-firm traders. Rather than one
+broker-specific integration, `apps/api/src/brokers/types.ts` defines a
+`BrokerAdapter` interface every provider implements — Tradovate is the first,
+Rithmic and NinjaTrader are the natural next adapters behind the same
+interface (see chat history / commit log for the comparison across
+Tradovate, Rithmic, ProjectX/TopstepX, NinjaTrader, and TradingView that led
+to Tradovate going first: it's the only one of these with a public
+OAuth-based cloud REST API built for third parties, with no vendor-approval
+process or per-user fee).
+
+**Data model**: `BrokerConnection` (one user's OAuth link to one provider,
+tokens encrypted at rest via `apps/api/src/security/encryption.ts`) and
+`BrokerFill` (a single raw execution, stored close to the source shape).
+`BrokerFill` is deliberately *not* the same thing as a "trade" — matching
+fills into closed, P&L-bearing round-trip positions (FIFO/LIFO, partials)
+is real accounting logic that hasn't been built yet. That's the next piece
+once real fill data exists to build it against.
+
+**What's verified vs. assumed** (`apps/api/src/brokers/tradovate.ts` has the
+full detail) — Tradovate's own docs (api.tradovate.com, partner.tradovate.com)
+block automated fetches, so this was built from their public example repos
+and community forum instead:
+- Verified: the OAuth authorize URL, the token-exchange endpoint and its
+  request shape, the REST base URLs (demo/live), and the `fill/list` path.
+- Not verified: the exact field names on a `fill/list` response item, and
+  whether the token-exchange response includes a usable refresh token.
+  `parseFill` validates strictly and throws with the raw payload attached on
+  any mismatch instead of silently coercing bad data — that thrown error,
+  the first time this runs against a real account, is the signal to come
+  back and correct the field mapping. `refreshTokens` throws unconditionally
+  until this is confirmed, rather than guessing.
+- Nothing here has been exercised against Tradovate's real API — that
+  requires Tradovate Partner API credentials (`TRADOVATE_CLIENT_ID` /
+  `TRADOVATE_CLIENT_SECRET`), which means applying to their partner program.
+  That's a business step, not something available in this environment. What
+  *is* verified locally (see `apps/api/src/brokers/tradovate.test.ts` and
+  `apps/api/src/routes/brokers.ts` tested via curl): auth gating, the
+  authorize-URL construction, OAuth state-token CSRF protection, and the
+  fill-parsing validation logic against representative fixtures.
+
 ## Local development database
 
 Postgres, via Prisma (`packages/db`). Copy `.env.example` to `.env` in both
