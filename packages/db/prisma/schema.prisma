@@ -25,8 +25,25 @@ model User {
   updatedAt    DateTime         @updatedAt
 
   refreshTokens RefreshToken[]
+  characters    UserCharacter[]
 
   @@map("users")
+}
+
+/// A user's captured instance of a NovaDex family (e.g. "the Monkey Line").
+/// `familyId` references packages/nova-dex content by id — species data
+/// lives in code, not the database, so it can ship without a migration.
+model UserCharacter {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId   String
+  xp         Int      @default(0)
+  capturedAt DateTime @default(now())
+
+  @@unique([userId, familyId])
+  @@index([userId])
+  @@map("user_characters")
 }
 
 /// Refresh tokens are stored hashed, never in plaintext, and rotated on every use.
