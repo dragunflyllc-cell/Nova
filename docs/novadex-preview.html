@@ -37,50 +37,30 @@
   /* NovaDex is a dark, holo-card trading UI by design — it does not switch
      to a light theme with the viewer's OS/browser preference. */
 
-  :root[data-theme="dark"] {
+  /* Forced dark regardless of the viewer's stamped data-theme — NovaDex
+     does not have a light variant, by design (see comment above). */
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
     color-scheme: dark;
-    --bg: #0a0b10;
-    --bg-2: #0d0f16;
-    --panel: #12141c;
-    --panel-2: #171a24;
-    --border: #262a38;
-    --border-soft: #1c1f2b;
-    --ink: #edebf5;
-    --ink-dim: #9a9ab0;
-    --ink-faint: #666a80;
-    --accent: #f0a83c;
-    --accent-ink: #201202;
-    --accent-2: #7b6ef6;
+    --bg: #05060a;
+    --bg-2: #07080e;
+    --panel: #0c0e16;
+    --panel-2: #11131e;
+    --border: #232a3d;
+    --border-soft: #191d2a;
+    --ink: #eef1f7;
+    --ink-dim: #8d97b0;
+    --ink-faint: #565f78;
+    --accent: #4fd1ff;
+    --accent-ink: #041018;
+    --accent-2: #8b6ef6;
     --gain: #33d17e;
     --loss: #f0525f;
     --tier-common: #5b6478;
-    --tier-uncommon: #33a8c9;
-    --tier-rare: #7b6ef6;
-    --tier-epic: #d6559c;
-    --tier-legendary: #f0a83c;
-  }
-
-  :root[data-theme="light"] {
-    color-scheme: light;
-    --bg: #eef0f5;
-    --bg-2: #e6e9f0;
-    --panel: #ffffff;
-    --panel-2: #f5f6fa;
-    --border: #d8dce6;
-    --border-soft: #e3e6ee;
-    --ink: #14151c;
-    --ink-dim: #5b5f70;
-    --ink-faint: #8a8fa3;
-    --accent: #c97f1e;
-    --accent-ink: #fff8ee;
-    --accent-2: #6355d6;
-    --gain: #1e9a5a;
-    --loss: #d2333f;
-    --tier-common: #6b7488;
-    --tier-uncommon: #1c85a3;
-    --tier-rare: #6355d6;
-    --tier-epic: #b23e80;
-    --tier-legendary: #b06a12;
+    --tier-uncommon: #3b82f6;
+    --tier-rare: #7c6ef6;
+    --tier-epic: #a855f7;
+    --tier-legendary: #4fd1ff;
   }
 
   * { box-sizing: border-box; }
