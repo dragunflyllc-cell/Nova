@@ -11,11 +11,17 @@
     "lint": "echo \"no lint configured\""
   },
   "dependencies": {
+    "@nova/db": "workspace:*",
     "@nova/nova-dex": "workspace:*",
     "@nova/types": "workspace:*",
-    "fastify": "^4.28.1"
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "jose": "^5.9.6",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.16.10",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3"

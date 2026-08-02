@@ -16,9 +16,10 @@ apps/
 packages/
   types/        Shared TypeScript domain types (User, BehavioralCharacter, ...)
   nova-dex/     The NovaDex — species/evolution-line data for Behavioral Characters
+  db/           Prisma schema + client (Postgres) — the persistence layer
   config/       Shared tsconfig / lint config
 docs/
-  ARCHITECTURE.md        How the system maps to the Nova Economy pillars
+  ARCHITECTURE.md        How the system maps to the Nova Economy pillars, plus auth/DB details
   novadex-preview.html   Static preview of the NovaDex character index
 ```
 
@@ -26,10 +27,21 @@ docs/
 
 ```bash
 pnpm install
+
+# one-time: point apps/api and packages/db at a local Postgres
+cp apps/api/.env.example apps/api/.env
+cp packages/db/.env.example packages/db/.env
+# edit DATABASE_URL / ACCESS_TOKEN_SECRET in both if your local setup differs
+
+cd packages/db && pnpm db:migrate && cd ../..
+
 pnpm dev          # runs web (:3000) and api (:4000) together
 pnpm typecheck     # typecheck all packages
 pnpm build
 ```
+
+See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how auth (email/password,
+JWT access + rotating refresh tokens) is wired up.
 
 ## The NovaDex
 

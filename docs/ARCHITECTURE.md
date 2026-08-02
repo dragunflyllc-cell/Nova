@@ -14,6 +14,7 @@ surfaces live in `apps/`.
 | `apps/api` | Trades, XP/quests, characters, marketplace, reputation — the Fastify service the web app and future mobile clients call. |
 | `packages/types` | Shared domain types: `User`, `BehavioralCharacter`, `CharacterStage`, `MarketplaceListing`, `ReputationScore`, `LeagueStanding`, etc. |
 | `packages/nova-dex` | Static species/evolution-line content for the Behavioral Character system. |
+| `packages/db` | Prisma schema and client — the source of truth for persisted data (Postgres). |
 | `packages/config` | Shared `tsconfig` bases and (future) lint config. |
 
 ## How this maps to the Nova Economy
@@ -47,8 +48,41 @@ surfaces live in `apps/`.
   start, even though no UI exists yet — so revenue-share and verification
   logic has one canonical shape to build against.
 
+## Auth
+
+`apps/api` owns authentication; `apps/web` and any future mobile client are
+callers, not the source of truth. Email/password only for now.
+
+- Passwords: bcrypt (12 rounds), never logged or returned.
+- Access tokens: short-lived (15 min) JWTs, `HS256`, signed with
+  `ACCESS_TOKEN_SECRET`.
+- Refresh tokens: opaque random strings, stored server-side only as a SHA-256
+  hash (`packages/db`'s `RefreshToken` model), rotated on every use, and
+  revoked immediately once rotated — reusing an old refresh token fails.
+- Routes: `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`,
+  `POST /auth/logout`, `GET /me` (Bearer token).
+- Known v1 simplification: both tokens are returned in the JSON body, which
+  is fine for now (mobile clients need this shape anyway) but a browser
+  client should eventually get the refresh token via an `httpOnly` cookie
+  instead of storing it in JS-reachable memory/storage — that's a follow-up
+  hardening pass, not done yet.
+
+No email verification or password reset flow yet — first thing to add before
+this is user-facing.
+
+## Local development database
+
+Postgres, via Prisma (`packages/db`). Copy `.env.example` to `.env` in both
+`apps/api` and `packages/db`, point `DATABASE_URL` at a local Postgres, then:
+
+```bash
+cd packages/db
+pnpm db:migrate   # applies schema.prisma, generates the Prisma client
+```
+
 ## Next steps
 
-This skeleton has no auth, no database, and no deployed API yet — those are
-the next real architectural decisions (see open questions in the repo issues,
-or raise them with the team before building further).
+No deployed environment exists yet — everything above has only been run and
+verified locally in this workspace. Deploying anywhere (even a staging
+environment) is a separate decision to make explicitly, not an assumed next
+step.
