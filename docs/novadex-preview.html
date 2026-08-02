@@ -1,0 +1,854 @@
+<title>NovaDex — Behavioral Character Index</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0b10;
+    --bg-2: #0d0f16;
+    --panel: #12141c;
+    --panel-2: #171a24;
+    --border: #262a38;
+    --border-soft: #1c1f2b;
+    --ink: #edebf5;
+    --ink-dim: #9a9ab0;
+    --ink-faint: #666a80;
+    --accent: #f0a83c;
+    --accent-ink: #201202;
+    --accent-2: #7b6ef6;
+    --gain: #33d17e;
+    --loss: #f0525f;
+    --tier-common: #5b6478;
+    --tier-uncommon: #33a8c9;
+    --tier-rare: #7b6ef6;
+    --tier-epic: #d6559c;
+    --tier-legendary: #f0a83c;
+
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+    --fs-2xs: 0.6875rem;
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.8125rem;
+    --fs-base: 0.9375rem;
+    --fs-md: 1.0625rem;
+    --fs-lg: 1.375rem;
+    --fs-xl: 1.75rem;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg: #eef0f5;
+      --bg-2: #e6e9f0;
+      --panel: #ffffff;
+      --panel-2: #f5f6fa;
+      --border: #d8dce6;
+      --border-soft: #e3e6ee;
+      --ink: #14151c;
+      --ink-dim: #5b5f70;
+      --ink-faint: #8a8fa3;
+      --accent: #c97f1e;
+      --accent-ink: #fff8ee;
+      --accent-2: #6355d6;
+      --gain: #1e9a5a;
+      --loss: #d2333f;
+      --tier-common: #6b7488;
+      --tier-uncommon: #1c85a3;
+      --tier-rare: #6355d6;
+      --tier-epic: #b23e80;
+      --tier-legendary: #b06a12;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0a0b10;
+    --bg-2: #0d0f16;
+    --panel: #12141c;
+    --panel-2: #171a24;
+    --border: #262a38;
+    --border-soft: #1c1f2b;
+    --ink: #edebf5;
+    --ink-dim: #9a9ab0;
+    --ink-faint: #666a80;
+    --accent: #f0a83c;
+    --accent-ink: #201202;
+    --accent-2: #7b6ef6;
+    --gain: #33d17e;
+    --loss: #f0525f;
+    --tier-common: #5b6478;
+    --tier-uncommon: #33a8c9;
+    --tier-rare: #7b6ef6;
+    --tier-epic: #d6559c;
+    --tier-legendary: #f0a83c;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef0f5;
+    --bg-2: #e6e9f0;
+    --panel: #ffffff;
+    --panel-2: #f5f6fa;
+    --border: #d8dce6;
+    --border-soft: #e3e6ee;
+    --ink: #14151c;
+    --ink-dim: #5b5f70;
+    --ink-faint: #8a8fa3;
+    --accent: #c97f1e;
+    --accent-ink: #fff8ee;
+    --accent-2: #6355d6;
+    --gain: #1e9a5a;
+    --loss: #d2333f;
+    --tier-common: #6b7488;
+    --tier-uncommon: #1c85a3;
+    --tier-rare: #6355d6;
+    --tier-epic: #b23e80;
+    --tier-legendary: #b06a12;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 20px 64px;
+  }
+
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────────── */
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+    padding-top: 22px;
+  }
+
+  .topbar-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 20px 14px;
+  }
+
+  .wordmark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+    letter-spacing: 0.02em;
+  }
+
+  .wordmark span { color: var(--accent); }
+
+  .tagline {
+    font-size: var(--fs-sm);
+    color: var(--ink-dim);
+    max-width: 40ch;
+  }
+
+  .ticker-tape {
+    overflow: hidden;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--bg-2);
+    white-space: nowrap;
+  }
+
+  .ticker-tape-track {
+    display: inline-flex;
+    gap: 28px;
+    padding: 8px 20px;
+    animation: scroll-tape 68s linear infinite;
+    width: max-content;
+  }
+
+  @keyframes scroll-tape {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-tape-track { animation: none; }
+  }
+
+  .ticker-tape:hover .ticker-tape-track { animation-play-state: paused; }
+
+  .tape-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--ink-dim);
+    letter-spacing: 0.03em;
+  }
+
+  .tape-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .stat-strip {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 10px 20px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+
+  .stat-strip .num {
+    color: var(--ink);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Controls ───────────────────────────────────────────────────── */
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 0;
+  }
+
+  #searchInput {
+    flex: 1 1 220px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+  }
+
+  #searchInput::placeholder { color: var(--ink-faint); }
+
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--ink-dim);
+    border-radius: 999px;
+    padding: 6px 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chip .chip-count { color: var(--ink-faint); }
+
+  .chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  }
+
+  .reset-btn {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-faint);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  .reset-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+  /* ── Family rows ────────────────────────────────────────────────── */
+
+  .family-row { margin-top: 30px; }
+
+  .family-row[hidden] { display: none; }
+
+  .family-row-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .family-dex {
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    font-size: var(--fs-sm);
+  }
+
+  .family-name {
+    font-size: var(--fs-lg);
+    font-weight: 700;
+  }
+
+  .family-theme {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .family-chain {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x proximity;
+  }
+
+  .evolve-connector {
+    flex: none;
+    width: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--ink-faint);
+  }
+
+  .evolve-connector .line {
+    width: 100%;
+    height: 1px;
+    background: repeating-linear-gradient(to right, var(--border) 0 6px, transparent 6px 10px);
+    position: relative;
+  }
+
+  .evolve-connector .arrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--ink-faint);
+  }
+
+  .evolve-connector .lvl {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.03em;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* ── Ticker card ────────────────────────────────────────────────── */
+
+  .ticker-card {
+    flex: none;
+    width: 272px;
+    scroll-snap-align: start;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    transition: opacity 0.15s ease, border-color 0.15s ease;
+  }
+
+  .ticker-card.is-dimmed {
+    opacity: 0.32;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .tier-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--tier-color, var(--border));
+    color: var(--tier-color, var(--ink-dim));
+  }
+
+  .tier-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tier-color, var(--ink-faint));
+    flex: none;
+  }
+
+  .dex-no {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--ink-faint);
+  }
+
+  .ticker-code {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--fs-md);
+    letter-spacing: 0.02em;
+    color: var(--tier-color, var(--accent));
+  }
+
+  .card-name { font-size: var(--fs-md); font-weight: 700; text-wrap: balance; }
+  .card-title { font-size: var(--fs-xs); color: var(--ink-dim); margin-top: 2px; }
+
+  .sector-tag {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border: 1px solid var(--border-soft);
+    border-radius: 5px;
+    padding: 2px 7px;
+  }
+
+  .stat-rows { display: flex; flex-direction: column; gap: 5px; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 78px 1fr 26px;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .stat-track {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+  }
+
+  .stat-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--ink-dim);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ability-line {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--ink-dim);
+    border-top: 1px solid var(--border-soft);
+    padding-top: 9px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .ability-line .ability-name { color: var(--ink); }
+  .ability-line .ability-pwr { color: var(--accent-2); font-variant-numeric: tabular-nums; }
+
+  .modifier-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .modifier-chip {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .modifier-chip.gain {
+    color: var(--gain);
+    background: color-mix(in srgb, var(--gain) 14%, transparent);
+  }
+
+  .modifier-chip.loss {
+    color: var(--loss);
+    background: color-mix(in srgb, var(--loss) 14%, transparent);
+  }
+
+  .flavor-text {
+    font-size: var(--fs-2xs);
+    color: var(--ink-faint);
+    border-top: 1px solid var(--border-soft);
+    padding-top: 9px;
+    font-style: italic;
+  }
+
+  .unlock-condition {
+    font-size: 0.625rem;
+    color: var(--ink-faint);
+  }
+
+  .empty-state {
+    padding: 60px 0;
+    text-align: center;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+
+  .page-footer {
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-soft);
+    color: var(--ink-faint);
+    font-size: var(--fs-xs);
+    max-width: 62ch;
+  }
+</style>
+
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="wordmark">NOVA<span>DEX</span></div>
+      <p class="tagline">A live index of trading behavior. Every listing starts as a habit and evolves as the trader's process improves.</p>
+    </div>
+    <div class="ticker-tape">
+      <div class="ticker-tape-track" id="tickerTapeTrack"></div>
+    </div>
+    <div class="stat-strip">
+      <div><span class="num" id="statSpecies">0</span> Species Indexed</div>
+      <div><span class="num" id="statFamilies">0</span> Listings</div>
+      <div><span class="num" id="statSectors">0</span> Sectors</div>
+    </div>
+  </header>
+
+  <section class="controls">
+    <input type="search" id="searchInput" placeholder="Search species, ticker, or title…" aria-label="Search NovaDex" />
+    <div class="chip-group" id="rarityChips" aria-label="Filter by market cap tier"></div>
+    <div class="chip-group" id="archetypeChips" aria-label="Filter by sector"></div>
+    <button type="button" class="reset-btn" id="resetFilters">Reset</button>
+  </section>
+
+  <main id="dexList"></main>
+
+  <p class="empty-state" id="emptyState" hidden>No listings match the current filters.</p>
+
+  <footer class="page-footer">
+    <p>NovaDex v1 — first roster drop from the Nova design system. 18 listings, 55 evolutionary stages. Evolution is earned through behavior (level plus, for later stages, a real trading condition), never purchased — see Nova's cosmetic-only monetization principle.</p>
+  </footer>
+</div>
+
+<script id="novadex-data" type="application/json">
+{"characterStages":[{"id":"fomo-monkey","familyId":"monkey-line","stageIndex":0,"name":"FOMO Monkey","title":"The Impulsive Trader","archetype":"impulsive","rarity":"legendary","unlock":{"level":1},"stats":{"impulsivity":95,"patience":10,"discipline":15,"riskManagement":20,"consistency":25,"emotionalControl":10},"abilities":[{"name":"Market Order","power":95,"description":"Enters immediately without analysis. High damage, low accuracy."},{"name":"Chase","power":80,"description":"Chases price after a move has already happened."},{"name":"Revenge Trade","power":90,"description":"Strikes back recklessly after taking a loss."},{"name":"Hopium","power":70,"description":"Holds a loser, believing \"it will go back up.\""}],"strengths":[{"label":"Follows Plan","xpModifierPct":15},{"label":"Stops After Win","xpModifierPct":10},{"label":"Manages Risk","xpModifierPct":20}],"weaknesses":[{"label":"FOMO Entry","xpModifierPct":-20},{"label":"Revenge Trading","xpModifierPct":-25},{"label":"Breaks Rules","xpModifierPct":-30}],"flavorText":"Naturally drawn to shiny green candles. Evolves after repeated losses and deep reflection (or a full account blow-up)."},{"id":"ape-apprentice","familyId":"monkey-line","stageIndex":1,"name":"Ape Apprentice","title":"The Recovering Trader","archetype":"impulsive","rarity":"legendary","unlock":{"level":16,"condition":"10 trades taken with a pre-written plan"},"stats":{"impulsivity":70,"patience":30,"discipline":35,"riskManagement":35,"consistency":40,"emotionalControl":30},"abilities":[{"name":"Sized Entry","power":60,"description":"Enters with a defined position size instead of guessing."},{"name":"Cooldown","power":50,"description":"Steps away from the screen after a loss instead of chasing."}],"strengths":[{"label":"Sizes Positions","xpModifierPct":20},{"label":"Uses Stop Loss","xpModifierPct":20}],"weaknesses":[{"label":"Still Chases News","xpModifierPct":-15},{"label":"Impatient Exits","xpModifierPct":-10}],"flavorText":"Starting to notice the pattern. Still slips back into old habits under pressure."},{"id":"gorillic-trader","familyId":"monkey-line","stageIndex":2,"name":"Gorillic Trader","title":"The Grinder","archetype":"disciplined","rarity":"legendary","unlock":{"level":36,"condition":"20-trade streak with rules followed"},"stats":{"impulsivity":40,"patience":55,"discipline":65,"riskManagement":60,"consistency":65,"emotionalControl":55},"abilities":[{"name":"Confirmed Entry","power":70,"description":"Waits for confluence before pulling the trigger."},{"name":"Risk Cap","power":65,"description":"Never risks more than the plan allows."}],"strengths":[{"label":"Consistent Sizing","xpModifierPct":25},{"label":"Journaled Every Trade","xpModifierPct":20}],"weaknesses":[{"label":"Occasional Overtrading","xpModifierPct":-10}],"flavorText":"Built real habits through repetition. Losses no longer trigger a spiral."},{"id":"market-master","familyId":"monkey-line","stageIndex":3,"name":"Market Master","title":"The Composed Professional","archetype":"disciplined","rarity":"legendary","unlock":{"level":60,"condition":"50-trade streak, zero rule violations"},"stats":{"impulsivity":15,"patience":85,"discipline":90,"riskManagement":88,"consistency":85,"emotionalControl":85},"abilities":[{"name":"Process Over Outcome","power":90,"description":"Grades the trade by process, win or lose."},{"name":"Unshaken","power":85,"description":"Immune to FOMO and revenge-trade triggers."}],"strengths":[{"label":"Full Rule Adherence","xpModifierPct":30},{"label":"Mentors Others","xpModifierPct":20}],"weaknesses":[],"flavorText":"The final form of the trader who used to buy every green candle. Proof the arc is real."},{"id":"patient-panda","familyId":"panda-line","stageIndex":0,"name":"Patient Panda","title":"The Disciplined Investor","archetype":"patient","rarity":"rare","unlock":{"level":1},"stats":{"impulsivity":15,"patience":80,"discipline":70,"riskManagement":60,"consistency":65,"emotionalControl":60},"abilities":[{"name":"Wait It Out","power":60,"description":"Sits on hands until the setup is fully confirmed."},{"name":"Slow Bleed Guard","power":55,"description":"Cuts small losses before they compound."}],"strengths":[{"label":"Waits for Confirmation","xpModifierPct":20},{"label":"Rarely Overtrades","xpModifierPct":15}],"weaknesses":[{"label":"Sometimes Too Slow to Act","xpModifierPct":-10}],"flavorText":"Already ahead of most traders. Evolves by turning patience into precision."},{"id":"zen-panda","familyId":"panda-line","stageIndex":1,"name":"Zen Panda","title":"The Grounded Trader","archetype":"patient","rarity":"rare","unlock":{"level":16},"stats":{"impulsivity":10,"patience":88,"discipline":80,"riskManagement":72,"consistency":78,"emotionalControl":75},"abilities":[{"name":"Stillness","power":70,"description":"Untouched by market noise or social media hype."}],"strengths":[{"label":"Emotionally Steady","xpModifierPct":25}],"weaknesses":[{"label":"Occasionally Misses Momentum","xpModifierPct":-8}],"flavorText":"Trades like the market owes it nothing."},{"id":"sage-panda","familyId":"panda-line","stageIndex":2,"name":"Sage Panda","title":"The Mentor","archetype":"disciplined","rarity":"epic","unlock":{"level":36},"stats":{"impulsivity":5,"patience":92,"discipline":90,"riskManagement":85,"consistency":88,"emotionalControl":88},"abilities":[{"name":"Teach the Way","power":80,"description":"Boosts XP for nearby traders it mentors."}],"strengths":[{"label":"Helps Beginners","xpModifierPct":25}],"weaknesses":[],"flavorText":"Sought after in the community for calm, precise guidance."},{"id":"grandmaster-panda","familyId":"panda-line","stageIndex":3,"name":"Grandmaster Panda","title":"The Institution","archetype":"disciplined","rarity":"legendary","unlock":{"level":60,"condition":"Reputation Score in top 1%"},"stats":{"impulsivity":5,"patience":95,"discipline":95,"riskManagement":92,"consistency":93,"emotionalControl":92},"abilities":[{"name":"Unmovable","power":95,"description":"Statistically immune to tilt."}],"strengths":[{"label":"Elite Consistency","xpModifierPct":30}],"weaknesses":[],"flavorText":"The trader other traders study."},{"id":"hodl-hippo","familyId":"hippo-line","stageIndex":0,"name":"HODL Hippo","title":"The Diamond Hands","archetype":"resilient","rarity":"rare","unlock":{"level":1},"stats":{"impulsivity":20,"patience":90,"discipline":55,"riskManagement":40,"consistency":60,"emotionalControl":65},"abilities":[{"name":"Just HODL","power":75,"description":"Refuses to sell, for better or worse."}],"strengths":[{"label":"Rides Winners","xpModifierPct":20}],"weaknesses":[{"label":"No Exit Plan","xpModifierPct":-20},{"label":"Ignores Stop Loss","xpModifierPct":-15}],"flavorText":"Conviction without a plan is just hope with extra steps."},{"id":"vault-hippo","familyId":"hippo-line","stageIndex":1,"name":"Vault Hippo","title":"The Position Sizer","archetype":"resilient","rarity":"rare","unlock":{"level":20,"condition":"Every open position has a stop loss set"},"stats":{"impulsivity":15,"patience":88,"discipline":70,"riskManagement":65,"consistency":70,"emotionalControl":72},"abilities":[{"name":"Defined Exit","power":70,"description":"Holds with conviction, but always with a stop."}],"strengths":[{"label":"Always Uses Stops","xpModifierPct":25}],"weaknesses":[{"label":"Slow to Take Profit","xpModifierPct":-10}],"flavorText":"Learned that conviction and risk management aren't opposites."},{"id":"fortress-hippo","familyId":"hippo-line","stageIndex":2,"name":"Fortress Hippo","title":"The Long-Term Compounder","archetype":"resilient","rarity":"epic","unlock":{"level":45},"stats":{"impulsivity":10,"patience":92,"discipline":85,"riskManagement":82,"consistency":85,"emotionalControl":85},"abilities":[{"name":"Compound Wall","power":88,"description":"Portfolio built to survive any single bad trade."}],"strengths":[{"label":"Portfolio Diversified","xpModifierPct":25}],"weaknesses":[],"flavorText":"Nothing gets through. Nothing needs to."},{"id":"greedy-goblin","familyId":"goblin-line","stageIndex":0,"name":"Greedy Goblin","title":"The Profit Chaser","archetype":"greedy","rarity":"uncommon","unlock":{"level":1},"stats":{"impulsivity":65,"patience":20,"discipline":25,"riskManagement":25,"consistency":30,"emotionalControl":20},"abilities":[{"name":"Never Enough","power":80,"description":"Holds past the target, hoping for more."}],"strengths":[{"label":"High Risk Appetite","xpModifierPct":10}],"weaknesses":[{"label":"No Take-Profit Discipline","xpModifierPct":-25},{"label":"Overleverages","xpModifierPct":-20}],"flavorText":"Turns winners into losers by refusing to take the win."},{"id":"hoarder-goblin","familyId":"goblin-line","stageIndex":1,"name":"Hoarder Goblin","title":"The Partial Profiteer","archetype":"greedy","rarity":"uncommon","unlock":{"level":18,"condition":"Scales out of 10 winning trades"},"stats":{"impulsivity":45,"patience":40,"discipline":45,"riskManagement":45,"consistency":50,"emotionalControl":40},"abilities":[{"name":"Scale Out","power":65,"description":"Banks partial profit instead of holding for everything."}],"strengths":[{"label":"Takes Partial Profit","xpModifierPct":20}],"weaknesses":[{"label":"Still Greedy on Runners","xpModifierPct":-10}],"flavorText":"Learning that a booked profit beats a hoped-for one."},{"id":"tycoon-troll","familyId":"goblin-line","stageIndex":2,"name":"Tycoon Troll","title":"The Profit Taker","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":25,"patience":65,"discipline":75,"riskManagement":72,"consistency":75,"emotionalControl":65},"abilities":[{"name":"Target Lock","power":80,"description":"Executes the exit plan exactly as written."}],"strengths":[{"label":"Disciplined Take-Profit","xpModifierPct":25}],"weaknesses":[],"flavorText":"Greed, redirected into a system instead of a feeling."},{"id":"fearful-fox","familyId":"fox-line","stageIndex":0,"name":"Fearful Fox","title":"The Early Exiter","archetype":"fearful","rarity":"uncommon","unlock":{"level":1},"stats":{"impulsivity":40,"patience":25,"discipline":40,"riskManagement":50,"consistency":30,"emotionalControl":25},"abilities":[{"name":"Panic Sell","power":60,"description":"Exits at the first sign of red."}],"strengths":[{"label":"Cuts Losses Fast","xpModifierPct":15}],"weaknesses":[{"label":"Exits Winners Too Early","xpModifierPct":-20},{"label":"Skips Valid Setups","xpModifierPct":-15}],"flavorText":"So afraid of losing that it never lets a winner run."},{"id":"cautious-fox","familyId":"fox-line","stageIndex":1,"name":"Cautious Fox","title":"The Measured Exiter","archetype":"fearful","rarity":"uncommon","unlock":{"level":18,"condition":"Holds 10 winners to their target"},"stats":{"impulsivity":30,"patience":45,"discipline":55,"riskManagement":60,"consistency":50,"emotionalControl":45},"abilities":[{"name":"Trust the Plan","power":65,"description":"Lets the target play out instead of flinching."}],"strengths":[{"label":"Holds to Target","xpModifierPct":20}],"weaknesses":[{"label":"Still Hesitates on Entry","xpModifierPct":-10}],"flavorText":"Fear is quieter now. The plan speaks louder."},{"id":"composed-fox","familyId":"fox-line","stageIndex":2,"name":"Composed Fox","title":"The Calculated Trader","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":20,"patience":70,"discipline":75,"riskManagement":78,"consistency":72,"emotionalControl":75},"abilities":[{"name":"Clear Eyes","power":78,"description":"Reads price without fear distorting the picture."}],"strengths":[{"label":"Full-Target Exits","xpModifierPct":25}],"weaknesses":[],"flavorText":"Fear became a signal to check the plan, not abandon it."},{"id":"overtrade-otter","familyId":"otter-line","stageIndex":0,"name":"Overtrade Otter","title":"The Hyperactive Scalper","archetype":"reckless","rarity":"uncommon","unlock":{"level":1},"stats":{"impulsivity":80,"patience":15,"discipline":20,"riskManagement":30,"consistency":20,"emotionalControl":20},"abilities":[{"name":"Click Frenzy","power":70,"description":"Takes trades out of boredom, not opportunity."}],"strengths":[{"label":"Fast Reactions","xpModifierPct":10}],"weaknesses":[{"label":"Excessive Trade Frequency","xpModifierPct":-25},{"label":"Ignores Setup Quality","xpModifierPct":-15}],"flavorText":"Confuses activity with progress."},{"id":"restless-otter","familyId":"otter-line","stageIndex":1,"name":"Restless Otter","title":"The Selective Scalper","archetype":"reckless","rarity":"uncommon","unlock":{"level":18,"condition":"Stays under a daily trade-count limit for 2 weeks"},"stats":{"impulsivity":55,"patience":35,"discipline":45,"riskManagement":45,"consistency":45,"emotionalControl":40},"abilities":[{"name":"Trade Limit","power":60,"description":"Stops for the day once a cap is hit."}],"strengths":[{"label":"Respects Daily Limit","xpModifierPct":20}],"weaknesses":[{"label":"Still Trades When Bored","xpModifierPct":-10}],"flavorText":"Fewer trades, better trades."},{"id":"focused-otter","familyId":"otter-line","stageIndex":2,"name":"Focused Otter","title":"The Precision Scalper","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":30,"patience":55,"discipline":70,"riskManagement":68,"consistency":70,"emotionalControl":65},"abilities":[{"name":"Sniper Entry","power":82,"description":"Only pulls the trigger on A+ setups."}],"strengths":[{"label":"High Setup Quality","xpModifierPct":25}],"weaknesses":[],"flavorText":"Quality replaced quantity, and results followed."},{"id":"revenge-rhino","familyId":"rhino-line","stageIndex":0,"name":"Revenge Rhino","title":"The Angry Trader","archetype":"reckless","rarity":"uncommon","unlock":{"level":1},"stats":{"impulsivity":85,"patience":10,"discipline":20,"riskManagement":20,"consistency":25,"emotionalControl":10},"abilities":[{"name":"Charge","power":90,"description":"Doubles down immediately after a loss."}],"strengths":[{"label":"High Conviction","xpModifierPct":10}],"weaknesses":[{"label":"Revenge Trading","xpModifierPct":-30},{"label":"Breaks Daily Loss Limit","xpModifierPct":-25}],"flavorText":"Trades the market to get even, not to win."},{"id":"simmer-rhino","familyId":"rhino-line","stageIndex":1,"name":"Simmer Rhino","title":"The Cooling Trader","archetype":"reckless","rarity":"uncommon","unlock":{"level":18,"condition":"Walks away after a loss 10 times instead of re-entering"},"stats":{"impulsivity":55,"patience":35,"discipline":45,"riskManagement":45,"consistency":45,"emotionalControl":40},"abilities":[{"name":"Step Back","power":60,"description":"Takes a mandatory cooldown after a loss."}],"strengths":[{"label":"Uses Cooldown Timer","xpModifierPct":20}],"weaknesses":[{"label":"Still Tilts Occasionally","xpModifierPct":-12}],"flavorText":"Anger still shows up. It just doesn't drive anymore."},{"id":"iron-rhino","familyId":"rhino-line","stageIndex":2,"name":"Iron Rhino","title":"The Unshaken Trader","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":20,"patience":68,"discipline":78,"riskManagement":75,"consistency":75,"emotionalControl":78},"abilities":[{"name":"Loss Limit Lock","power":85,"description":"Hard-stops trading once the daily loss cap is hit."}],"strengths":[{"label":"Honors Loss Limits","xpModifierPct":28}],"weaknesses":[],"flavorText":"A loss is just data now."},{"id":"overthink-owl","familyId":"owl-line","stageIndex":0,"name":"Overthink Owl","title":"The Paralyzed Analyst","archetype":"analytical","rarity":"uncommon","unlock":{"level":1},"stats":{"impulsivity":15,"patience":60,"discipline":40,"riskManagement":50,"consistency":30,"emotionalControl":35},"abilities":[{"name":"Analysis Loop","power":55,"description":"Adds indicator after indicator until the entry is gone."}],"strengths":[{"label":"Thorough Research","xpModifierPct":15}],"weaknesses":[{"label":"Misses Entries","xpModifierPct":-20}],"flavorText":"Knows everything about the setup except when to take it."},{"id":"study-owl","familyId":"owl-line","stageIndex":1,"name":"Study Owl","title":"The Efficient Analyst","archetype":"analytical","rarity":"uncommon","unlock":{"level":18},"stats":{"impulsivity":15,"patience":65,"discipline":55,"riskManagement":60,"consistency":55,"emotionalControl":55},"abilities":[{"name":"Checklist","power":65,"description":"A fixed, short checklist replaces endless analysis."}],"strengths":[{"label":"Fast, Confident Entries","xpModifierPct":18}],"weaknesses":[{"label":"Occasional Second-Guessing","xpModifierPct":-8}],"flavorText":"Traded certainty for a system that's good enough."},{"id":"insight-owl","familyId":"owl-line","stageIndex":2,"name":"Insight Owl","title":"The Sharp Analyst","archetype":"analytical","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":10,"patience":75,"discipline":78,"riskManagement":80,"consistency":78,"emotionalControl":75},"abilities":[{"name":"Signal Clarity","power":85,"description":"Sees the setup and acts without hesitation."}],"strengths":[{"label":"Decisive Execution","xpModifierPct":25}],"weaknesses":[],"flavorText":"Analysis in seconds, not hours."},{"id":"anxious-hare","familyId":"hare-line","stageIndex":0,"name":"Anxious Hare","title":"The Nervous Trader","archetype":"anxious","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":55,"patience":20,"discipline":30,"riskManagement":35,"consistency":25,"emotionalControl":15},"abilities":[{"name":"Bolt","power":60,"description":"Flees a trade at the first flicker of volatility."}],"strengths":[{"label":"Quick to Cut Risk","xpModifierPct":12}],"weaknesses":[{"label":"Panic Sells Winners","xpModifierPct":-20}],"flavorText":"Every candle wick feels like a threat."},{"id":"steady-hare","familyId":"hare-line","stageIndex":1,"name":"Steady Hare","title":"The Settling Trader","archetype":"anxious","rarity":"common","unlock":{"level":18},"stats":{"impulsivity":35,"patience":45,"discipline":50,"riskManagement":55,"consistency":50,"emotionalControl":45},"abilities":[{"name":"Deep Breath","power":60,"description":"Rides normal volatility without flinching."}],"strengths":[{"label":"Tolerates Drawdown","xpModifierPct":18}],"weaknesses":[{"label":"Still Checks Price Too Often","xpModifierPct":-8}],"flavorText":"Learning that volatility isn't danger."},{"id":"calm-hare","familyId":"hare-line","stageIndex":2,"name":"Calm Hare","title":"The Composed Trader","archetype":"disciplined","rarity":"uncommon","unlock":{"level":40},"stats":{"impulsivity":20,"patience":70,"discipline":72,"riskManagement":75,"consistency":72,"emotionalControl":75},"abilities":[{"name":"Quiet Mind","power":78,"description":"Unbothered by short-term noise."}],"strengths":[{"label":"Emotionally Regulated","xpModifierPct":22}],"weaknesses":[],"flavorText":"Fast on its feet, calm in its head."},{"id":"cocky-cub","familyId":"lion-line","stageIndex":0,"name":"Cocky Cub","title":"The Overconfident Trader","archetype":"overconfident","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":60,"patience":25,"discipline":30,"riskManagement":25,"consistency":35,"emotionalControl":30},"abilities":[{"name":"Oversize","power":75,"description":"Bets big after a winning streak, no adjustment to risk."}],"strengths":[{"label":"Confident Execution","xpModifierPct":12}],"weaknesses":[{"label":"Oversizes After Wins","xpModifierPct":-22}],"flavorText":"Three wins in a row and the rules stop applying — or so it thinks."},{"id":"bold-lion","familyId":"lion-line","stageIndex":1,"name":"Bold Lion","title":"The Measured Risk-Taker","archetype":"overconfident","rarity":"common","unlock":{"level":18},"stats":{"impulsivity":40,"patience":45,"discipline":50,"riskManagement":50,"consistency":55,"emotionalControl":50},"abilities":[{"name":"Fixed Sizing","power":65,"description":"Keeps position size constant regardless of streak."}],"strengths":[{"label":"Consistent Position Size","xpModifierPct":20}],"weaknesses":[{"label":"Still Skips Some Checks","xpModifierPct":-8}],"flavorText":"Confidence, now backed by a process."},{"id":"humble-king","familyId":"lion-line","stageIndex":2,"name":"Humble King","title":"The Respected Trader","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":20,"patience":70,"discipline":80,"riskManagement":78,"consistency":78,"emotionalControl":75},"abilities":[{"name":"Steady Reign","power":85,"description":"Treats every trade with the same discipline, win or lose."}],"strengths":[{"label":"Streak-Proof Discipline","xpModifierPct":26}],"weaknesses":[],"flavorText":"Confidence earned the hard way doesn't need to prove itself."},{"id":"reckless-pup","familyId":"wolf-line","stageIndex":0,"name":"Reckless Pup","title":"The Leverage Junkie","archetype":"reckless","rarity":"uncommon","unlock":{"level":1},"stats":{"impulsivity":90,"patience":10,"discipline":15,"riskManagement":10,"consistency":20,"emotionalControl":15},"abilities":[{"name":"Max Leverage","power":95,"description":"Goes all-in on borrowed size. Huge upside, bigger downside."}],"strengths":[{"label":"High Risk Tolerance","xpModifierPct":8}],"weaknesses":[{"label":"Overleverages Every Trade","xpModifierPct":-30}],"flavorText":"Treats the market like a slot machine."},{"id":"lone-wolf","familyId":"wolf-line","stageIndex":1,"name":"Lone Wolf","title":"The Calculated Risk-Taker","archetype":"reckless","rarity":"uncommon","unlock":{"level":18,"condition":"Caps leverage for 15 consecutive trades"},"stats":{"impulsivity":55,"patience":35,"discipline":45,"riskManagement":45,"consistency":45,"emotionalControl":40},"abilities":[{"name":"Leverage Cap","power":65,"description":"Never exceeds a fixed leverage limit."}],"strengths":[{"label":"Enforces Leverage Cap","xpModifierPct":22}],"weaknesses":[{"label":"Still Tempted on Big Setups","xpModifierPct":-10}],"flavorText":"Risk as a tool, not a thrill."},{"id":"alpha-wolf","familyId":"wolf-line","stageIndex":2,"name":"Alpha Wolf","title":"The Risk Manager","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":25,"patience":65,"discipline":75,"riskManagement":82,"consistency":72,"emotionalControl":70},"abilities":[{"name":"Portfolio Guard","power":85,"description":"Sizes every trade against total account risk."}],"strengths":[{"label":"Account-Level Risk Control","xpModifierPct":28}],"weaknesses":[],"flavorText":"Leads with control, not adrenaline."},{"id":"cautious-turtle","familyId":"turtle-line","stageIndex":0,"name":"Cautious Turtle","title":"The Careful Beginner","archetype":"disciplined","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":20,"patience":60,"discipline":55,"riskManagement":65,"consistency":45,"emotionalControl":50},"abilities":[{"name":"Small Steps","power":50,"description":"Trades tiny size while learning the ropes."}],"strengths":[{"label":"Conservative Sizing","xpModifierPct":15}],"weaknesses":[{"label":"Underuses Good Setups","xpModifierPct":-8}],"flavorText":"Slow and steady, still finding its pace."},{"id":"armored-turtle","familyId":"turtle-line","stageIndex":1,"name":"Armored Turtle","title":"The Risk Guardian","archetype":"disciplined","rarity":"common","unlock":{"level":18},"stats":{"impulsivity":15,"patience":70,"discipline":70,"riskManagement":78,"consistency":68,"emotionalControl":65},"abilities":[{"name":"Hard Stop","power":70,"description":"Every trade has a stop before it has an entry."}],"strengths":[{"label":"100% Stop-Loss Usage","xpModifierPct":25}],"weaknesses":[],"flavorText":"Nothing gets through without a plan first."},{"id":"titan-tortoise","familyId":"turtle-line","stageIndex":2,"name":"Titan Tortoise","title":"The Capital Preserver","archetype":"disciplined","rarity":"epic","unlock":{"level":40},"stats":{"impulsivity":10,"patience":85,"discipline":88,"riskManagement":92,"consistency":85,"emotionalControl":82},"abilities":[{"name":"Fortress Portfolio","power":90,"description":"Structured so no single trade can do real damage."}],"strengths":[{"label":"Elite Drawdown Control","xpModifierPct":30}],"weaknesses":[],"flavorText":"Outlasts everyone by never blowing up."},{"id":"headline-hound","familyId":"hound-line","stageIndex":0,"name":"Headline Hound","title":"The News Chaser","archetype":"impulsive","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":75,"patience":20,"discipline":25,"riskManagement":30,"consistency":25,"emotionalControl":25},"abilities":[{"name":"Breaking News Sprint","power":70,"description":"Trades the headline, not the chart."}],"strengths":[{"label":"Fast Information Pickup","xpModifierPct":10}],"weaknesses":[{"label":"Trades on Rumors","xpModifierPct":-20}],"flavorText":"First to the headline, last to the plan."},{"id":"signal-hound","familyId":"hound-line","stageIndex":1,"name":"Signal Hound","title":"The Confirmed Reactor","archetype":"impulsive","rarity":"common","unlock":{"level":18},"stats":{"impulsivity":50,"patience":40,"discipline":45,"riskManagement":48,"consistency":45,"emotionalControl":45},"abilities":[{"name":"Confirm First","power":62,"description":"Waits for price to confirm the headline before acting."}],"strengths":[{"label":"Confirms Before Entry","xpModifierPct":18}],"weaknesses":[{"label":"Still Reacts to Noise","xpModifierPct":-8}],"flavorText":"Learned that the headline and the trade aren't the same thing."},{"id":"tracker-hound","familyId":"hound-line","stageIndex":2,"name":"Tracker Hound","title":"The Macro Reader","archetype":"analytical","rarity":"uncommon","unlock":{"level":40},"stats":{"impulsivity":25,"patience":65,"discipline":70,"riskManagement":68,"consistency":70,"emotionalControl":65},"abilities":[{"name":"Context Read","power":80,"description":"Places news inside the broader market structure."}],"strengths":[{"label":"Contextualizes Catalysts","xpModifierPct":24}],"weaknesses":[],"flavorText":"News is now an input, not a trigger."},{"id":"stubborn-calf","familyId":"bull-line","stageIndex":0,"name":"Stubborn Calf","title":"The Averager","archetype":"reckless","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":50,"patience":40,"discipline":25,"riskManagement":20,"consistency":30,"emotionalControl":25},"abilities":[{"name":"Double Down","power":75,"description":"Adds to a losing position to lower the average, no plan attached."}],"strengths":[{"label":"Strong Conviction","xpModifierPct":8}],"weaknesses":[{"label":"Averages Down Without a Thesis","xpModifierPct":-25}],"flavorText":"Believes being early and being wrong are the same thing."},{"id":"bracing-bull","familyId":"bull-line","stageIndex":1,"name":"Bracing Bull","title":"The Thesis-Checker","archetype":"reckless","rarity":"common","unlock":{"level":18},"stats":{"impulsivity":35,"patience":50,"discipline":45,"riskManagement":45,"consistency":48,"emotionalControl":45},"abilities":[{"name":"Re-Check Thesis","power":65,"description":"Only adds to a position if the original thesis still holds."}],"strengths":[{"label":"Reassesses Before Adding","xpModifierPct":18}],"weaknesses":[{"label":"Occasionally Adds Too Early","xpModifierPct":-8}],"flavorText":"Conviction, now paired with a checkpoint."},{"id":"unshakable-bull","familyId":"bull-line","stageIndex":2,"name":"Unshakable Bull","title":"The Position Builder","archetype":"disciplined","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":20,"patience":68,"discipline":75,"riskManagement":72,"consistency":74,"emotionalControl":70},"abilities":[{"name":"Scaled Entry","power":82,"description":"Builds a position deliberately, at pre-planned levels."}],"strengths":[{"label":"Pre-Planned Scaling","xpModifierPct":26}],"weaknesses":[],"flavorText":"Adds size like a professional, not a gambler chasing a loss back."},{"id":"rookie-elephant","familyId":"elephant-line","stageIndex":0,"name":"Rookie Elephant","title":"The Forgetful Trader","archetype":"consistent","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":40,"patience":45,"discipline":35,"riskManagement":40,"consistency":20,"emotionalControl":40},"abilities":[{"name":"Foggy Memory","power":45,"description":"Repeats the same mistake without noticing the pattern."}],"strengths":[{"label":"Willing to Learn","xpModifierPct":10}],"weaknesses":[{"label":"Doesn't Journal Trades","xpModifierPct":-18}],"flavorText":"Hasn't started connecting the dots yet."},{"id":"diligent-elephant","familyId":"elephant-line","stageIndex":1,"name":"Diligent Elephant","title":"The Journaling Trader","archetype":"consistent","rarity":"common","unlock":{"level":18,"condition":"Journals 20 trades in a row"},"stats":{"impulsivity":30,"patience":55,"discipline":55,"riskManagement":55,"consistency":55,"emotionalControl":55},"abilities":[{"name":"Never Forgets","power":68,"description":"Logs every trade, win or lose."}],"strengths":[{"label":"100% Journaling Rate","xpModifierPct":22}],"weaknesses":[],"flavorText":"Every trade becomes data instead of a memory."},{"id":"elder-elephant","familyId":"elephant-line","stageIndex":2,"name":"Elder Elephant","title":"The Pattern Reader","archetype":"consistent","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":15,"patience":75,"discipline":78,"riskManagement":75,"consistency":88,"emotionalControl":78},"abilities":[{"name":"Total Recall","power":88,"description":"Spots and corrects its own recurring mistakes instantly."}],"strengths":[{"label":"Self-Correcting","xpModifierPct":28}],"weaknesses":[],"flavorText":"A living record of every lesson the market ever taught it."},{"id":"erratic-chameleon","familyId":"chameleon-line","stageIndex":0,"name":"Erratic Chameleon","title":"The Strategy Hopper","archetype":"adaptive","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":60,"patience":30,"discipline":25,"riskManagement":35,"consistency":15,"emotionalControl":30},"abilities":[{"name":"Strategy Swap","power":55,"description":"Abandons a strategy after one bad trade to try another."}],"strengths":[{"label":"Open-Minded","xpModifierPct":10}],"weaknesses":[{"label":"Abandons Strategies Too Soon","xpModifierPct":-20}],"flavorText":"Never gives a system long enough to actually work."},{"id":"adaptive-chameleon","familyId":"chameleon-line","stageIndex":1,"name":"Adaptive Chameleon","title":"The Regime Reader","archetype":"adaptive","rarity":"common","unlock":{"level":18},"stats":{"impulsivity":40,"patience":50,"discipline":50,"riskManagement":52,"consistency":45,"emotionalControl":48},"abilities":[{"name":"Read the Room","power":68,"description":"Switches approach based on market regime, not mood."}],"strengths":[{"label":"Matches Strategy to Conditions","xpModifierPct":20}],"weaknesses":[{"label":"Sometimes Switches Too Fast","xpModifierPct":-8}],"flavorText":"Flexibility, now guided by evidence instead of frustration."},{"id":"master-chameleon","familyId":"chameleon-line","stageIndex":2,"name":"Master Chameleon","title":"The All-Terrain Trader","archetype":"adaptive","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":20,"patience":68,"discipline":72,"riskManagement":74,"consistency":70,"emotionalControl":72},"abilities":[{"name":"Full Spectrum","power":85,"description":"Trades trend, range, and volatility regimes with equal skill."}],"strengths":[{"label":"Multi-Regime Competence","xpModifierPct":26}],"weaknesses":[],"flavorText":"Comfortable in every market the same way water is comfortable in any container."},{"id":"busy-beaver","familyId":"beaver-line","stageIndex":0,"name":"Busy Beaver","title":"The Backtest Addict","archetype":"analytical","rarity":"common","unlock":{"level":1},"stats":{"impulsivity":20,"patience":55,"discipline":40,"riskManagement":45,"consistency":35,"emotionalControl":40},"abilities":[{"name":"Endless Backtest","power":50,"description":"Tests strategy after strategy but never trades live."}],"strengths":[{"label":"Strong Research Habit","xpModifierPct":15}],"weaknesses":[{"label":"Never Executes Live","xpModifierPct":-15}],"flavorText":"Has a spreadsheet for everything except a live track record."},{"id":"architect-beaver","familyId":"beaver-line","stageIndex":1,"name":"Architect Beaver","title":"The System Builder","archetype":"analytical","rarity":"common","unlock":{"level":18,"condition":"Takes 15 live trades from a backtested system"},"stats":{"impulsivity":20,"patience":62,"discipline":60,"riskManagement":62,"consistency":58,"emotionalControl":55},"abilities":[{"name":"Live Fire","power":68,"description":"Puts backtested edge to work with real size."}],"strengths":[{"label":"Executes Tested Systems","xpModifierPct":22}],"weaknesses":[],"flavorText":"Research finally meets execution."},{"id":"engineer-beaver","familyId":"beaver-line","stageIndex":2,"name":"Engineer Beaver","title":"The Strategist","archetype":"analytical","rarity":"rare","unlock":{"level":40},"stats":{"impulsivity":15,"patience":75,"discipline":80,"riskManagement":78,"consistency":78,"emotionalControl":72},"abilities":[{"name":"Edge Refinement","power":86,"description":"Continuously improves a live, working system."}],"strengths":[{"label":"Publishes Verified Strategies","xpModifierPct":28}],"weaknesses":[],"flavorText":"The trader other creators license strategies from."},{"id":"ash-phoenix","familyId":"phoenix-line","stageIndex":0,"name":"Ash Phoenix","title":"The Blown Account","archetype":"resilient","rarity":"epic","unlock":{"level":1,"condition":"Account drawdown of 90%+ followed by a fresh start"},"stats":{"impulsivity":50,"patience":40,"discipline":40,"riskManagement":30,"consistency":30,"emotionalControl":40},"abilities":[{"name":"From the Ashes","power":60,"description":"Starts over small, carrying hard-won lessons."}],"strengths":[{"label":"Rebuilding with a Plan","xpModifierPct":20}],"weaknesses":[{"label":"Scar Tissue Hesitation","xpModifierPct":-10}],"flavorText":"Only obtainable through a real comeback. Wears the loss as proof, not shame."},{"id":"rising-phoenix","familyId":"phoenix-line","stageIndex":1,"name":"Rising Phoenix","title":"The Redeemed Trader","archetype":"resilient","rarity":"legendary","unlock":{"level":50,"condition":"New account reaches its prior all-time high, with rules followed"},"stats":{"impulsivity":15,"patience":85,"discipline":88,"riskManagement":85,"consistency":85,"emotionalControl":85},"abilities":[{"name":"Second Flight","power":95,"description":"Trades with the discipline only a real loss can teach."}],"strengths":[{"label":"Unbreakable Process","xpModifierPct":30}],"weaknesses":[],"flavorText":"The rarest kind of mastery: the kind that survived losing everything first."}],"characterFamilies":[{"id":"monkey-line","name":"Monkey Line","theme":"Impulsivity & FOMO","dexNumber":1,"stageIds":["fomo-monkey","ape-apprentice","gorillic-trader","market-master"]},{"id":"panda-line","name":"Panda Line","theme":"Patience & Discipline","dexNumber":2,"stageIds":["patient-panda","zen-panda","sage-panda","grandmaster-panda"]},{"id":"hippo-line","name":"Hippo Line","theme":"Conviction & Diamond Hands","dexNumber":3,"stageIds":["hodl-hippo","vault-hippo","fortress-hippo"]},{"id":"goblin-line","name":"Goblin Line","theme":"Greed","dexNumber":4,"stageIds":["greedy-goblin","hoarder-goblin","tycoon-troll"]},{"id":"fox-line","name":"Fox Line","theme":"Fear & Early Exits","dexNumber":5,"stageIds":["fearful-fox","cautious-fox","composed-fox"]},{"id":"otter-line","name":"Otter Line","theme":"Overtrading","dexNumber":6,"stageIds":["overtrade-otter","restless-otter","focused-otter"]},{"id":"rhino-line","name":"Rhino Line","theme":"Revenge Trading","dexNumber":7,"stageIds":["revenge-rhino","simmer-rhino","iron-rhino"]},{"id":"owl-line","name":"Owl Line","theme":"Overanalysis & Paralysis","dexNumber":8,"stageIds":["overthink-owl","study-owl","insight-owl"]},{"id":"hare-line","name":"Hare Line","theme":"Anxiety & Panic Selling","dexNumber":9,"stageIds":["anxious-hare","steady-hare","calm-hare"]},{"id":"lion-line","name":"Lion Line","theme":"Overconfidence","dexNumber":10,"stageIds":["cocky-cub","bold-lion","humble-king"]},{"id":"wolf-line","name":"Wolf Line","theme":"Leverage & Gambling","dexNumber":11,"stageIds":["reckless-pup","lone-wolf","alpha-wolf"]},{"id":"turtle-line","name":"Turtle Line","theme":"Risk Management Mastery","dexNumber":12,"stageIds":["cautious-turtle","armored-turtle","titan-tortoise"]},{"id":"hound-line","name":"Hound Line","theme":"News & Headline Chasing","dexNumber":13,"stageIds":["headline-hound","signal-hound","tracker-hound"]},{"id":"bull-line","name":"Bull Line","theme":"Averaging Down & Stubbornness","dexNumber":14,"stageIds":["stubborn-calf","bracing-bull","unshakable-bull"]},{"id":"elephant-line","name":"Elephant Line","theme":"Consistency & Journaling","dexNumber":15,"stageIds":["rookie-elephant","diligent-elephant","elder-elephant"]},{"id":"chameleon-line","name":"Chameleon Line","theme":"Adaptability","dexNumber":16,"stageIds":["erratic-chameleon","adaptive-chameleon","master-chameleon"]},{"id":"beaver-line","name":"Beaver Line","theme":"System-Building & Backtesting","dexNumber":17,"stageIds":["busy-beaver","architect-beaver","engineer-beaver"]},{"id":"phoenix-line","name":"Phoenix Line","theme":"Redemption & Comeback","dexNumber":18,"stageIds":["ash-phoenix","rising-phoenix"]}]}
+</script>
+
+<script>
+  (function () {
+    const data = JSON.parse(document.getElementById("novadex-data").textContent);
+    const stages = data.characterStages;
+    const families = data.characterFamilies.slice().sort((a, b) => a.dexNumber - b.dexNumber);
+    const stageById = Object.fromEntries(stages.map((s) => [s.id, s]));
+
+    const TIER_LABEL = {
+      common: "Micro Cap",
+      uncommon: "Small Cap",
+      rare: "Mid Cap",
+      epic: "Large Cap",
+      legendary: "Mega Cap",
+    };
+    const TIER_ORDER = ["legendary", "epic", "rare", "uncommon", "common"];
+
+    const STAT_FIELDS = [
+      ["impulsivity", "Impulse"],
+      ["patience", "Patience"],
+      ["discipline", "Discipline"],
+      ["riskManagement", "Risk Mgmt"],
+      ["consistency", "Consist."],
+      ["emotionalControl", "Emo. Ctrl"],
+    ];
+
+    function tickerFor(name) {
+      const first = name.split(" ")[0].toUpperCase().replace(/[^A-Z]/g, "");
+      if (first.length <= 5) return first;
+      const consonants = first[0] + first.slice(1).replace(/[AEIOU]/g, "");
+      return consonants.slice(0, 5);
+    }
+
+    function powerIndex(stage) {
+      const total = stage.abilities.reduce((sum, a) => sum + a.power, 0);
+      return Math.round(total / Math.max(stage.abilities.length, 1));
+    }
+
+    // ── Ticker tape ──────────────────────────────────────────────────
+    const tapeItems = stages
+      .map(
+        (s) =>
+          '<span class="tape-item"><span class="tape-dot" style="background:var(--tier-' +
+          s.rarity +
+          ')"></span>$' +
+          tickerFor(s.name) +
+          " " +
+          powerIndex(s) +
+          "</span>"
+      )
+      .join("");
+    document.getElementById("tickerTapeTrack").innerHTML = tapeItems + tapeItems;
+
+    // ── Stat strip ───────────────────────────────────────────────────
+    document.getElementById("statSpecies").textContent = stages.length;
+    document.getElementById("statFamilies").textContent = families.length;
+    document.getElementById("statSectors").textContent = new Set(stages.map((s) => s.archetype)).size;
+
+    // ── Filters state ────────────────────────────────────────────────
+    const state = { search: "", rarities: new Set(), archetypes: new Set() };
+
+    function buildChips(containerId, field, order) {
+      const container = document.getElementById(containerId);
+      const counts = new Map();
+      stages.forEach((s) => counts.set(s[field], (counts.get(s[field]) || 0) + 1));
+      const keys = order ? order.filter((k) => counts.has(k)) : Array.from(counts.keys()).sort();
+      keys.forEach((key) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip";
+        btn.setAttribute("aria-pressed", "false");
+        btn.dataset.value = key;
+        const label = field === "rarity" ? TIER_LABEL[key] : key.charAt(0).toUpperCase() + key.slice(1);
+        btn.innerHTML = label + ' <span class="chip-count">' + counts.get(key) + "</span>";
+        btn.addEventListener("click", () => {
+          const set = field === "rarity" ? state.rarities : state.archetypes;
+          const pressed = btn.getAttribute("aria-pressed") === "true";
+          btn.setAttribute("aria-pressed", String(!pressed));
+          if (pressed) set.delete(key);
+          else set.add(key);
+          render();
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    buildChips("rarityChips", "rarity", TIER_ORDER);
+    buildChips("archetypeChips", "archetype", null);
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      state.search = e.target.value.trim().toLowerCase();
+      render();
+    });
+
+    document.getElementById("resetFilters").addEventListener("click", () => {
+      state.search = "";
+      state.rarities.clear();
+      state.archetypes.clear();
+      document.getElementById("searchInput").value = "";
+      document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
+      render();
+    });
+
+    function stageMatches(stage) {
+      const text = (stage.name + " " + stage.title + " " + tickerFor(stage.name)).toLowerCase();
+      const matchesSearch = !state.search || text.includes(state.search);
+      const matchesRarity = state.rarities.size === 0 || state.rarities.has(stage.rarity);
+      const matchesArchetype = state.archetypes.size === 0 || state.archetypes.has(stage.archetype);
+      return matchesSearch && matchesRarity && matchesArchetype;
+    }
+
+    function modifierChips(list, kind) {
+      if (!list.length) return "";
+      return (
+        '<div class="modifier-row">' +
+        list
+          .map(
+            (m) =>
+              '<span class="modifier-chip ' +
+              kind +
+              '">' +
+              (kind === "gain" ? "+" : "") +
+              m.xpModifierPct +
+              "% " +
+              m.label +
+              "</span>"
+          )
+          .join("") +
+        "</div>"
+      );
+    }
+
+    function cardHTML(stage) {
+      const topAbility = stage.abilities[0];
+      const unlockLabel =
+        stage.stageIndex === 0
+          ? "Starting form"
+          : "Lv. " + stage.unlock.level + (stage.unlock.condition ? " · " + stage.unlock.condition : "");
+      return (
+        '<div class="ticker-card" style="--tier-color:var(--tier-' +
+        stage.rarity +
+        ')" data-stage-id="' +
+        stage.id +
+        '">' +
+        '<div class="card-top">' +
+        '<span class="tier-pill"><span class="tier-dot"></span>' +
+        TIER_LABEL[stage.rarity] +
+        "</span>" +
+        '<span class="dex-no">PWR ' +
+        powerIndex(stage) +
+        "</span>" +
+        "</div>" +
+        '<div class="ticker-code">$' +
+        tickerFor(stage.name) +
+        "</div>" +
+        '<div><div class="card-name">' +
+        stage.name +
+        '</div><div class="card-title">' +
+        stage.title +
+        "</div></div>" +
+        '<span class="sector-tag">' +
+        stage.archetype +
+        "</span>" +
+        '<div class="unlock-condition">' +
+        unlockLabel +
+        "</div>" +
+        '<div class="stat-rows">' +
+        STAT_FIELDS.map(
+          ([key, label]) =>
+            '<div class="stat-row"><span class="stat-label">' +
+            label +
+            '</span><span class="stat-track"><span class="stat-fill" style="width:' +
+            stage.stats[key] +
+            '%"></span></span><span class="stat-val">' +
+            stage.stats[key] +
+            "</span></div>"
+        ).join("") +
+        "</div>" +
+        '<div class="ability-line"><span class="ability-name">' +
+        topAbility.name +
+        '</span><span class="ability-pwr">PWR ' +
+        topAbility.power +
+        "</span></div>" +
+        modifierChips(stage.strengths, "gain") +
+        modifierChips(stage.weaknesses, "loss") +
+        '<div class="flavor-text">' +
+        stage.flavorText +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    function connectorHTML(fromStage, toStage) {
+      const cond = toStage.unlock.condition ? ' title="' + toStage.unlock.condition.replace(/"/g, "&quot;") + '"' : "";
+      return (
+        '<div class="evolve-connector"' +
+        cond +
+        '><span class="arrow">⇢</span><span class="line"></span><span class="lvl">LV ' +
+        toStage.unlock.level +
+        "</span></div>"
+      );
+    }
+
+    function render() {
+      const dexList = document.getElementById("dexList");
+      dexList.innerHTML = "";
+      let visibleFamilies = 0;
+
+      families.forEach((family) => {
+        const stageObjs = family.stageIds.map((id) => stageById[id]);
+        const anyMatch = stageObjs.some(stageMatches);
+        if (!anyMatch) return;
+        visibleFamilies += 1;
+
+        const row = document.createElement("section");
+        row.className = "family-row";
+
+        const head = document.createElement("div");
+        head.className = "family-row-head";
+        head.innerHTML =
+          '<span class="family-dex">N°' +
+          String(family.dexNumber).padStart(2, "0") +
+          "</span>" +
+          '<span class="family-name">' +
+          family.name +
+          "</span>" +
+          '<span class="family-theme">' +
+          family.theme +
+          "</span>";
+        row.appendChild(head);
+
+        const chain = document.createElement("div");
+        chain.className = "family-chain";
+        let chainHTML = "";
+        stageObjs.forEach((stage, i) => {
+          if (i > 0) chainHTML += connectorHTML(stageObjs[i - 1], stage);
+          chainHTML += cardHTML(stage);
+        });
+        chain.innerHTML = chainHTML;
+        row.appendChild(chain);
+
+        stageObjs.forEach((stage) => {
+          if (!stageMatches(stage)) {
+            const el = chain.querySelector('[data-stage-id="' + stage.id + '"]');
+            if (el) el.classList.add("is-dimmed");
+          }
+        });
+
+        dexList.appendChild(row);
+      });
+
+      document.getElementById("emptyState").hidden = visibleFamilies !== 0;
+    }
+
+    render();
+  })();
+</script>
