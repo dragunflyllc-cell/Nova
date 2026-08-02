@@ -12,7 +12,19 @@ export type CharacterArchetype =
   | "overconfident"
   | "anxious"
   | "adaptive"
-  | "resilient";
+  | "resilient"
+  | "pessimistic"
+  | "hesitant"
+  | "vain"
+  | "scattered"
+  | "imitative"
+  | "avoidant"
+  | "herd"
+  | "complacent"
+  | "opportunistic"
+  | "restless"
+  | "stubborn"
+  | "aimless";
 
 /** 0-100 scale, mirrors the stat bars shown on a character's card. */
 export interface CharacterStatBlock {

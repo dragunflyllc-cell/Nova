@@ -33,8 +33,8 @@ pnpm build
 
 ## The NovaDex
 
-`packages/nova-dex` holds the first roster of Behavioral Characters: 18 evolution
-lines (55 stages total), each modeling a real trading habit — good or bad — that
+`packages/nova-dex` holds the roster of Behavioral Characters: 38 evolution
+lines (115 stages total), each modeling a real trading habit — good or bad — that
 evolves as a trader's actual behavior improves. See `docs/novadex-preview.html`
 for a browsable index, or import `@nova/nova-dex` for the typed data.
 
