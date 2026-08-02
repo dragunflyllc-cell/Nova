@@ -1,4 +1,10 @@
-.page {
+.headerBar {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 0;
+}
+
+.content {
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 20px 64px;
@@ -10,7 +16,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 28px 0 0;
+  padding-bottom: 20px;
 }
 
 .wordmark {

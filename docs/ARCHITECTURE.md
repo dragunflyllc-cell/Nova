@@ -139,12 +139,26 @@ pre-launch:
   by `WaitlistSignup` in Postgres (`POST /waitlist`, idempotent on repeat
   emails so resubmitting never errors; `GET /waitlist/count` for the live
   count shown on the page). Not a placeholder form — verified end to end with
-  a real browser session against the real API and database.
-- **Public NovaDex browser** (`app/novadex/page.tsx`) — every family and
-  stage from `packages/nova-dex`, rendered with the same ticker-card design
-  used in the original NovaDex artifact (`components/CharacterCard.tsx`,
-  design tokens in `app/globals.css`). No auth required; this is meant to be
-  shared.
+  a real browser session against the real API and database. Has an optional
+  "prop firm code" field (free text, not validated against a partner table —
+  there are no partners yet) so Nova can see which firms are actually
+  driving signups before any real partner program exists to design around
+  that data.
+- **Public NovaDex browser** (`app/novadex/page.tsx` + `components/NovaDexBrowser.tsx`)
+  — every family and stage from `packages/nova-dex`, with the same
+  search-by-name/ticker and rarity/sector filter chips as the original
+  NovaDex artifact (ported into a real client component this time, not left
+  behind as artifact-only). Non-matching cards dim rather than disappear, so
+  a family's evolution chain stays visually intact while filtered. No auth
+  required; this is meant to be shared.
+- **Design tokens** (`app/globals.css`) moved off the original amber/violet
+  duo to gold (`--accent`) + teal (`--accent-2`) as the primary pair, with
+  indigo/magenta reserved for rare/epic rarity tiers specifically — a
+  deliberate change from the first pass, not the default. `CharacterCard`
+  now has real hover motion (lift + tier-colored glow) instead of being
+  static, and a ticker-tape marquee (`components/TickerTape.tsx`) — built
+  for the original artifact but never wired into the actual app until now —
+  runs across the landing page header.
 - **Login / register / dashboard** (`app/login`, `app/register`,
   `app/dashboard`) — a real session, not a mock. `lib/auth-context.tsx` holds
   tokens in `localStorage`, validates the session against `GET /me` on load,

@@ -17,9 +17,14 @@ enum SubscriptionTier {
 /// isn't an account (no password, no auth) and shouldn't become one silently
 /// if the same email later registers for real.
 model WaitlistSignup {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id           String   @id @default(uuid())
+  email        String   @unique
+  /// Optional code a prop firm partner gave this trader — lets Nova see
+  /// which firms are actually driving signups before any formal partner
+  /// program or benefit exists. Free text on purpose; not validated against
+  /// a partner table yet, since there are no partners yet.
+  propFirmCode String?
+  createdAt    DateTime @default(now())
 
   @@map("waitlist_signups")
 }

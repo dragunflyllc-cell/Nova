@@ -1,0 +1,129 @@
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0 30px;
+}
+
+.search {
+  flex: 1 1 240px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.875rem;
+}
+
+.search::placeholder {
+  color: var(--ink-faint);
+}
+
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--ink-dim);
+  border-radius: 999px;
+  padding: 6px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+.chipActive {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+}
+
+.chipCount {
+  color: var(--ink-faint);
+}
+
+.resetButton {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--ink-faint);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.resetButton:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+.familyRow {
+  margin-top: 30px;
+}
+
+.familyRow[data-hidden="true"] {
+  display: none;
+}
+
+.familyHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.dexNo {
+  font-family: var(--font-mono);
+  color: var(--ink-faint);
+  font-size: 0.8125rem;
+}
+
+.familyName {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.familyTheme {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.chain {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.chainCard[data-dimmed="true"] {
+  opacity: 0.3;
+}
+
+.emptyState {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}

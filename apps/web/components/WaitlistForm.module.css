@@ -1,5 +1,11 @@
 .form {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -22,6 +28,35 @@
   opacity: 0.6;
 }
 
+.codeInput {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  max-width: 260px;
+}
+
+.codeInput::placeholder {
+  color: var(--ink-faint);
+}
+
+.codeToggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.codeToggle:hover {
+  color: var(--ink-dim);
+}
+
 .button {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -29,11 +64,17 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   background: var(--accent);
-  color: #201202;
+  color: var(--bg);
   border: none;
   border-radius: 8px;
   padding: 13px 22px;
   white-space: nowrap;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .button:disabled {

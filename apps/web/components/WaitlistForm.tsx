@@ -6,6 +6,8 @@ import styles from "./WaitlistForm.module.css";
 
 export function WaitlistForm() {
   const [email, setEmail] = useState("");
+  const [propFirmCode, setPropFirmCode] = useState("");
+  const [showCodeField, setShowCodeField] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -14,7 +16,7 @@ export function WaitlistForm() {
     setStatus("loading");
     setError("");
     try {
-      await joinWaitlist(email);
+      await joinWaitlist(email, propFirmCode.trim() || undefined);
       setStatus("success");
     } catch (err) {
       setStatus("error");
@@ -28,19 +30,38 @@ export function WaitlistForm() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <input
-        type="email"
-        required
-        placeholder="you@example.com"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        className={styles.input}
-        disabled={status === "loading"}
-        aria-label="Email address"
-      />
-      <button type="submit" className={styles.button} disabled={status === "loading"}>
-        {status === "loading" ? "Joining…" : "Join the Waitlist"}
-      </button>
+      <div className={styles.row}>
+        <input
+          type="email"
+          required
+          placeholder="you@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className={styles.input}
+          disabled={status === "loading"}
+          aria-label="Email address"
+        />
+        <button type="submit" className={styles.button} disabled={status === "loading"}>
+          {status === "loading" ? "Joining…" : "Join the Waitlist"}
+        </button>
+      </div>
+
+      {showCodeField ? (
+        <input
+          type="text"
+          placeholder="Prop firm code (optional)"
+          value={propFirmCode}
+          onChange={(event) => setPropFirmCode(event.target.value)}
+          className={styles.codeInput}
+          disabled={status === "loading"}
+          aria-label="Prop firm code"
+        />
+      ) : (
+        <button type="button" className={styles.codeToggle} onClick={() => setShowCodeField(true)}>
+          Have a prop firm code?
+        </button>
+      )}
+
       {status === "error" ? <p className={styles.error}>{error}</p> : null}
     </form>
   );
