@@ -85,10 +85,28 @@ process or per-user fee).
 **Data model**: `BrokerConnection` (one user's OAuth link to one provider,
 tokens encrypted at rest via `apps/api/src/security/encryption.ts`) and
 `BrokerFill` (a single raw execution, stored close to the source shape).
-`BrokerFill` is deliberately *not* the same thing as a "trade" — matching
-fills into closed, P&L-bearing round-trip positions (FIFO/LIFO, partials)
-is real accounting logic that hasn't been built yet. That's the next piece
-once real fill data exists to build it against.
+`BrokerFill` is deliberately *not* the same thing as a "trade".
+
+**Trade matching** (`apps/api/src/trades/matching.ts`): turns a contract's
+fills into closed, round-trip trades with realized P&L, using FIFO matching
+— the convention most futures broker statements use. Handles scaling in
+(multiple entries before an exit), scaling out (multiple exits before fully
+flat), and a single fill flipping straight through flat into the opposite
+direction (closes the current trade, opens a new one from the leftover
+quantity). Fully covered by tests and also verified against real seeded
+database rows end to end (`GET /me/trades` groups a user's stored fills by
+symbol and matches each group) — this part doesn't depend on Tradovate
+credentials to validate, only the shape of a fill, which is fixed
+internally regardless of broker.
+
+Two things it deliberately does NOT do yet:
+- **Dollar P&L.** `realizedPointsPnl` is in points, not dollars — converting
+  requires each contract's tick value/multiplier (ES is $50/point, MES is
+  $5/point, etc.), and there's no contract reference table yet.
+- **Persistence.** Trades are computed on read from stored fills, not written
+  to their own table — reasonable until the Tradovate fill data itself is
+  validated against a real account (see below); no point locking in a Trade
+  schema against assumed data.
 
 **What's verified vs. assumed** (`apps/api/src/brokers/tradovate.ts` has the
 full detail) — Tradovate's own docs (api.tradovate.com, partner.tradovate.com)
