@@ -7,6 +7,7 @@ const envSchema = z.object({
     .string()
     .length(64, "ENCRYPTION_KEY must be 64 hex characters (32 bytes) — generate with `openssl rand -hex 32`"),
   PORT: z.coerce.number().default(4000),
+  CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
   // Tradovate — see docs/ARCHITECTURE.md#broker-integrations for what's verified vs. assumed.
   TRADOVATE_CLIENT_ID: z.string().min(1),

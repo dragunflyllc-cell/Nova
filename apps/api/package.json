@@ -12,6 +12,7 @@
     "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^9.0.1",
     "@nova/db": "workspace:*",
     "@nova/nova-dex": "workspace:*",
     "@nova/types": "workspace:*",

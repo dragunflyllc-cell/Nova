@@ -10,7 +10,7 @@ surfaces live in `apps/`.
 
 | Package | Owns |
 | --- | --- |
-| `apps/web` | The primary Nova surface (Next.js). Dashboard, journal, NovaDex, marketplace, leagues. |
+| `apps/web` | The primary Nova surface (Next.js). Currently a pre-launch landing page + waitlist and the public NovaDex browser; dashboard/journal/marketplace/leagues UI comes once there's a reason for someone to log in (real broker data). |
 | `apps/api` | Trades, XP/quests, characters, marketplace, reputation — the Fastify service the web app and future mobile clients call. |
 | `packages/types` | Shared domain types: `User`, `BehavioralCharacter`, `CharacterStage`, `MarketplaceListing`, `ReputationScore`, `LeagueStanding`, etc. |
 | `packages/nova-dex` | Static species/evolution-line content for the Behavioral Character system. |
@@ -129,6 +129,36 @@ and community forum instead:
   `apps/api/src/routes/brokers.ts` tested via curl): auth gating, the
   authorize-URL construction, OAuth state-token CSRF protection, and the
   fill-parsing validation logic against representative fixtures.
+
+## Web app
+
+`apps/web` is a Next.js app, currently scoped to what's actually usable
+pre-launch:
+
+- **Landing page + waitlist** (`app/page.tsx`) — a real, working signup backed
+  by `WaitlistSignup` in Postgres (`POST /waitlist`, idempotent on repeat
+  emails so resubmitting never errors; `GET /waitlist/count` for the live
+  count shown on the page). Not a placeholder form — verified end to end with
+  a real browser session against the real API and database.
+- **Public NovaDex browser** (`app/novadex/page.tsx`) — every family and
+  stage from `packages/nova-dex`, rendered with the same ticker-card design
+  used in the original NovaDex artifact (`components/CharacterCard.tsx`,
+  design tokens in `app/globals.css`). No auth required; this is meant to be
+  shared.
+- Login/register/dashboard UI intentionally doesn't exist yet — the backend
+  for it is fully built and tested (see Auth above), but there's little for a
+  logged-in user to *do* until real broker data exists, so the UI for it is
+  deferred rather than shipped empty.
+
+**One monorepo gotcha worth knowing**: packages here use Node/NodeNext-style
+`.js` import specifiers that point at `.ts` source files (standard for TS
+ESM). Webpack — what Next.js's dev/build pipeline uses — doesn't resolve
+that mapping by default, so `apps/web/next.config.mjs` sets
+`config.resolve.extensionAlias` to teach it to also try `.ts`/`.tsx`. Without
+that, any import from `@nova/nova-dex` or `@nova/types` 500s in the browser
+with a confusing "Module not found: Can't resolve './characters.js'" even
+though `tsc` and `tsx` (used by `apps/api` and the test suites) resolve the
+same import just fine.
 
 ## Local development database
 

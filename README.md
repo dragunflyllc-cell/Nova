@@ -35,10 +35,16 @@ cp packages/db/.env.example packages/db/.env
 
 cd packages/db && pnpm db:migrate && cd ../..
 
+# one-time: point the web app at the local API
+cp apps/web/.env.local.example apps/web/.env.local
+
 pnpm dev          # runs web (:3000) and api (:4000) together
 pnpm typecheck     # typecheck all packages
 pnpm build
 ```
+
+Visit `localhost:3000` for the (pre-launch) landing page and waitlist, or
+`localhost:3000/novadex` to browse the full character roster.
 
 Run `apps/api`'s tests with `pnpm --filter @nova/api test`.
 

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cors from "@fastify/cors";
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { characterFamilies, characterStages } from "@nova/nova-dex";
@@ -6,8 +7,11 @@ import { env } from "./env.js";
 import { authRoutes } from "./routes/auth.js";
 import { brokerRoutes } from "./routes/brokers.js";
 import { characterRoutes } from "./routes/characters.js";
+import { waitlistRoutes } from "./routes/waitlist.js";
 
 const app = Fastify({ logger: true });
+
+app.register(cors, { origin: env.CORS_ORIGIN });
 
 app.setErrorHandler((error, _request, reply) => {
   if (error instanceof ZodError) {
@@ -26,6 +30,7 @@ app.get("/novadex/characters", async () => characterStages);
 app.register(authRoutes);
 app.register(characterRoutes);
 app.register(brokerRoutes);
+app.register(waitlistRoutes);
 
 app.listen({ port: env.PORT, host: "0.0.0.0" }).catch((err) => {
   app.log.error(err);

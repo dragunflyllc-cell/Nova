@@ -1,0 +1,152 @@
+.card {
+  width: 272px;
+  flex: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tierPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--tier-color, var(--border));
+  color: var(--tier-color, var(--ink-dim));
+}
+
+.tierDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tier-color, var(--ink-faint));
+  flex: none;
+}
+
+.powerBadge {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
+}
+
+.tickerCode {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: 0.02em;
+  color: var(--tier-color, var(--accent));
+}
+
+.name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.title {
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+
+.sectorTag {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+
+.levelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+}
+
+.xpTrack {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+
+.xpFill {
+  height: 100%;
+  background: var(--accent-2);
+  border-radius: 999px;
+}
+
+.statRows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: 78px 1fr 26px;
+  align-items: center;
+  gap: 7px;
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.statTrack {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+
+.statFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.statVal {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--ink-dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.flavorText {
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 9px;
+  font-style: italic;
+}

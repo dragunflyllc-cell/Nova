@@ -13,6 +13,17 @@ enum SubscriptionTier {
   ENTERPRISE
 }
 
+/// Pre-launch email capture — separate from User, since a waitlist signup
+/// isn't an account (no password, no auth) and shouldn't become one silently
+/// if the same email later registers for real.
+model WaitlistSignup {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("waitlist_signups")
+}
+
 model User {
   id           String           @id @default(uuid())
   email        String           @unique
