@@ -33,12 +33,22 @@
 .artLayer {
   position: absolute;
   inset: 0;
+  background:
+    radial-gradient(circle at 28% 20%, color-mix(in srgb, var(--tier-color, var(--accent)) 22%, transparent), transparent 55%),
+    repeating-linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--tier-color, var(--accent)) 6%, transparent) 0px,
+      transparent 2px,
+      transparent 22px,
+      color-mix(in srgb, var(--tier-color, var(--accent)) 4%, transparent) 24px
+    ),
+    #05060a;
 }
 
 .portrait {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -50,16 +60,6 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 28% 20%, color-mix(in srgb, var(--tier-color, var(--accent)) 30%, transparent), transparent 55%),
-    repeating-linear-gradient(
-      115deg,
-      color-mix(in srgb, var(--tier-color, var(--accent)) 7%, transparent) 0px,
-      transparent 2px,
-      transparent 22px,
-      color-mix(in srgb, var(--tier-color, var(--accent)) 5%, transparent) 24px
-    ),
-    #05060a;
 }
 
 .portraitGhostNumeral {
