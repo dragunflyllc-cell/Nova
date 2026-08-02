@@ -31,6 +31,15 @@ surfaces live in `apps/`.
   purchased. This is also the enforcement mechanism for "never sell trading
   advantages, only sell personalization": cosmetic skins are a separate
   concern from the species/stat data.
+  - **The NovaDex is never "done."** Treat the current family/stage count as a
+    snapshot, not a ceiling — new species drops (seasonal, tournament reward,
+    contribution reward) are a core retention lever per `CLAUDE.md`'s Seasonal
+    Events, Tournaments, and Contribution Rewards sections. Nothing in `apps/web`,
+    `apps/api`, or the data itself may hardcode the roster size — always derive
+    counts (`characterStages.length`, etc.) from `packages/nova-dex`, never a
+    literal number. New families append at the next `dexNumber`; new archetype
+    values append to `CharacterArchetype` in `packages/types`. There should
+    always be a next character a player hasn't unlocked yet.
 - **Reputation & Leagues** (`ReputationScore`, `LeagueStanding` types) rank
   behavior, not P&L, matching the Nova Leagues and Reputation System sections.
 - **Creator economy & marketplace** (`CreatorProfile`, `MarketplaceListing`,
