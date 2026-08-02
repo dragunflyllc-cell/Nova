@@ -1,6 +1,7 @@
 import type { CharacterStage } from "@nova/types";
 import { totalXpForLevel } from "@nova/nova-dex";
 import styles from "./CharacterCard.module.css";
+import { CharacterPortrait } from "./CharacterPortrait";
 import { TIER_LABEL, powerIndex, tickerFor } from "../lib/ticker";
 
 const STAT_FIELDS: [key: keyof CharacterStage["stats"], label: string][] = [
@@ -25,50 +26,57 @@ export function CharacterCard({ stage, level, xp }: CharacterCardProps) {
 
   return (
     <div className={styles.card} style={{ ["--tier-color" as string]: tierVar }}>
-      <div className={styles.top}>
-        <span className={styles.tierPill}>
-          <span className={styles.tierDot} />
-          {TIER_LABEL[stage.rarity]}
-        </span>
-        <span className={styles.powerBadge}>PWR {powerIndex(stage.abilities)}</span>
-      </div>
+      <CharacterPortrait stageId={stage.id} name={stage.name} />
 
-      <div className={styles.tickerCode}>${tickerFor(stage.name)}</div>
-
-      <div>
-        <div className={styles.name}>{stage.name}</div>
-        <div className={styles.title}>{stage.title}</div>
-      </div>
-
-      <span className={styles.sectorTag}>{stage.archetype}</span>
-
-      {level !== undefined && xp !== undefined ? (
-        <LevelProgress level={level} xp={xp} />
-      ) : (
-        <div className={styles.levelRow}>
-          <span>{stage.stageIndex === 0 ? "Starting form" : `Lv. ${stage.unlock.level}`}</span>
+      <div className={styles.body}>
+        <div className={styles.top}>
+          <span className={styles.tierPill}>
+            <span className={styles.tierDot} />
+            {TIER_LABEL[stage.rarity]}
+          </span>
+          <span className={styles.powerBadge}>PWR {powerIndex(stage.abilities)}</span>
         </div>
-      )}
 
-      <div className={styles.statRows}>
-        {STAT_FIELDS.map(([key, label]) => (
-          <div className={styles.statRow} key={key}>
-            <span className={styles.statLabel}>{label}</span>
-            <span className={styles.statTrack}>
-              <span className={styles.statFill} style={{ width: `${stage.stats[key]}%` }} />
-            </span>
-            <span className={styles.statVal}>{stage.stats[key]}</span>
+        <div className={styles.tickerCode}>${tickerFor(stage.name)}</div>
+
+        <div>
+          <div className={styles.name}>{stage.name}</div>
+          <div className={styles.title}>{stage.title}</div>
+        </div>
+
+        <span className={styles.sectorTag}>{stage.archetype}</span>
+
+        {level !== undefined && xp !== undefined ? (
+          <LevelProgress level={level} xp={xp} />
+        ) : (
+          <div className={styles.levelRow}>
+            <span>{stage.stageIndex === 0 ? "Starting form" : `Lv. ${stage.unlock.level}`}</span>
           </div>
-        ))}
-      </div>
+        )}
 
-      {topAbility ? (
-        <div className={styles.flavorText} style={{ borderTop: "none", paddingTop: 0, fontStyle: "normal", color: "var(--ink-dim)" }}>
-          <strong style={{ color: "var(--ink)" }}>{topAbility.name}</strong> — {topAbility.description}
+        <div className={styles.statRows}>
+          {STAT_FIELDS.map(([key, label]) => (
+            <div className={styles.statRow} key={key}>
+              <span className={styles.statLabel}>{label}</span>
+              <span className={styles.statTrack}>
+                <span className={styles.statFill} style={{ width: `${stage.stats[key]}%` }} />
+              </span>
+              <span className={styles.statVal}>{stage.stats[key]}</span>
+            </div>
+          ))}
         </div>
-      ) : null}
 
-      <div className={styles.flavorText}>{stage.flavorText}</div>
+        {topAbility ? (
+          <div
+            className={styles.flavorText}
+            style={{ borderTop: "none", paddingTop: 0, fontStyle: "normal", color: "var(--ink-dim)" }}
+          >
+            <strong style={{ color: "var(--ink)" }}>{topAbility.name}</strong> — {topAbility.description}
+          </div>
+        ) : null}
+
+        <div className={styles.flavorText}>{stage.flavorText}</div>
+      </div>
     </div>
   );
 }
