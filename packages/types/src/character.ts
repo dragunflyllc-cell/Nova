@@ -24,7 +24,15 @@ export type CharacterArchetype =
   | "opportunistic"
   | "restless"
   | "stubborn"
-  | "aimless";
+  | "aimless"
+  | "idealistic"
+  | "concentrated"
+  | "illusory"
+  | "evasive"
+  | "conflicted"
+  | "naive"
+  | "compulsive"
+  | "cyclical";
 
 /** 0-100 scale, mirrors the stat bars shown on a character's card. */
 export interface CharacterStatBlock {

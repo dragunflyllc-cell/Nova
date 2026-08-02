@@ -39,7 +39,7 @@ export default async function HomePage() {
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>Meet your trading crew</h2>
           <p className={styles.sectionSub}>
-            A preview from the NovaDex — 38 evolution lines, 115 stages, each modeling a real trading habit that
+            A preview from the NovaDex — 51 evolution lines, 154 stages, each modeling a real trading habit that
             evolves as your behavior improves.
           </p>
         </div>
