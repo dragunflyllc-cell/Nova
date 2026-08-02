@@ -34,30 +34,8 @@
     --fs-xl: 1.75rem;
   }
 
-  @media (prefers-color-scheme: light) {
-    :root {
-      color-scheme: light;
-      --bg: #eef0f5;
-      --bg-2: #e6e9f0;
-      --panel: #ffffff;
-      --panel-2: #f5f6fa;
-      --border: #d8dce6;
-      --border-soft: #e3e6ee;
-      --ink: #14151c;
-      --ink-dim: #5b5f70;
-      --ink-faint: #8a8fa3;
-      --accent: #c97f1e;
-      --accent-ink: #fff8ee;
-      --accent-2: #6355d6;
-      --gain: #1e9a5a;
-      --loss: #d2333f;
-      --tier-common: #6b7488;
-      --tier-uncommon: #1c85a3;
-      --tier-rare: #6355d6;
-      --tier-epic: #b23e80;
-      --tier-legendary: #b06a12;
-    }
-  }
+  /* NovaDex is a dark, holo-card trading UI by design — it does not switch
+     to a light theme with the viewer's OS/browser preference. */
 
   :root[data-theme="dark"] {
     color-scheme: dark;
@@ -378,27 +356,99 @@
 
   .ticker-card {
     flex: none;
-    width: 272px;
+    width: 296px;
     scroll-snap-align: start;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 11px;
-    transition: opacity 0.15s ease, border-color 0.15s ease;
+    border-radius: 20px;
+    padding: 4px;
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--tier-color, var(--border)) 90%, white 10%),
+      color-mix(in srgb, var(--tier-color, var(--border)) 55%, black 35%)
+    );
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--tier-color, var(--border)) 60%, transparent) inset,
+      0 14px 30px -16px color-mix(in srgb, var(--tier-color, var(--border)) 65%, transparent);
+    transition: opacity 0.15s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    position: relative;
+  }
+
+  .ticker-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--tier-color, var(--border)) 75%, transparent) inset,
+      0 24px 40px -16px color-mix(in srgb, var(--tier-color, var(--border)) 80%, transparent);
   }
 
   .ticker-card.is-dimmed {
-    opacity: 0.32;
+    opacity: 0.28;
+  }
+
+  .card-inner {
+    position: relative;
+    height: 100%;
+    background: linear-gradient(165deg, var(--panel-2), var(--panel) 60%);
+    border-radius: 17px;
+    padding: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .card-inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--tier-color, var(--accent)) 22%, transparent) 0px,
+      transparent 3px,
+      transparent 16px,
+      color-mix(in srgb, var(--tier-color, var(--accent)) 14%, transparent) 19px
+    );
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+    transition: opacity 0.2s ease, transform 0.4s ease;
+  }
+
+  .ticker-card:hover .card-inner::before {
+    opacity: 0.6;
+    transform: translateX(6px);
   }
 
   .card-top {
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    z-index: 1;
+  }
+
+  .card-name { font-size: var(--fs-md); font-weight: 800; text-wrap: balance; line-height: 1.15; }
+  .card-title { font-size: var(--fs-2xs); color: var(--ink-dim); margin-top: 2px; }
+
+  .hp-badge {
+    flex: none;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tier-color, var(--accent)) 88%, black 6%);
+    color: #0a0b10;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color, var(--accent)) 40%, black 10%) inset;
+  }
+
+  .hp-badge .hp-label { font-size: 0.5625rem; letter-spacing: 0.04em; opacity: 0.75; }
+  .hp-badge .hp-value { font-size: 0.875rem; }
+
+  .card-subhead {
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    z-index: 1;
   }
 
   .tier-pill {
@@ -406,7 +456,7 @@
     align-items: center;
     gap: 5px;
     font-family: var(--font-mono);
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     padding: 3px 8px;
@@ -423,67 +473,154 @@
     flex: none;
   }
 
-  .dex-no {
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xs);
-    color: var(--ink-faint);
-  }
-
   .ticker-code {
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: var(--fs-md);
+    font-size: var(--fs-2xs);
     letter-spacing: 0.02em;
     color: var(--tier-color, var(--accent));
   }
 
-  .card-portrait {
+  .art-window {
+    position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid var(--border-soft);
+    border: 2px solid color-mix(in srgb, var(--tier-color, var(--border)) 55%, var(--border-soft));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tier-color, var(--border)) 14%, transparent) inset;
     background: color-mix(in srgb, var(--tier-color, var(--border)) 12%, var(--bg));
+    z-index: 1;
   }
 
-  .card-portrait img {
+  .art-window img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  .card-name { font-size: var(--fs-md); font-weight: 700; text-wrap: balance; }
-  .card-title { font-size: var(--fs-xs); color: var(--ink-dim); margin-top: 2px; }
+  .portrait-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: 0.02em;
+    color: var(--tier-color, var(--accent));
+    background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--tier-color, var(--accent)) 22%, var(--panel-2)), var(--panel-2));
+    opacity: 0.85;
+  }
+
+  .dex-chip {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    color: var(--tier-color, var(--ink));
+    border: 1px solid color-mix(in srgb, var(--tier-color, var(--border)) 60%, transparent);
+    backdrop-filter: blur(2px);
+  }
 
   .sector-tag {
     align-self: flex-start;
     font-family: var(--font-mono);
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--ink-faint);
     border: 1px solid var(--border-soft);
     border-radius: 5px;
     padding: 2px 7px;
+    z-index: 1;
   }
 
-  .stat-rows { display: flex; flex-direction: column; gap: 5px; }
-
-  .stat-row {
-    display: grid;
-    grid-template-columns: 78px 1fr 26px;
-    align-items: center;
-    gap: 7px;
+  .ability-box {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: color-mix(in srgb, var(--tier-color, var(--border)) 8%, var(--panel-2));
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 8px 10px;
   }
 
-  .stat-label {
+  .ability-line {
     font-family: var(--font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.03em;
+    font-size: var(--fs-xs);
+    color: var(--ink-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .energy-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--tier-color, var(--accent)) 90%, white 10%), color-mix(in srgb, var(--tier-color, var(--accent)) 70%, black 15%));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color, var(--accent)) 40%, black 20%);
+  }
+
+  .ability-line .ability-name { color: var(--ink); font-weight: 700; flex: 1; }
+  .ability-line .ability-pwr { color: var(--tier-color, var(--accent-2)); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .ability-desc {
+    font-size: 0.6875rem;
+    color: var(--ink-faint);
+    font-style: italic;
+    padding-left: 24px;
+  }
+
+  .stat-chart {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stat-chart-title {
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-faint);
   }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 10px;
+  }
+
+  .stat-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-row-head {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .stat-val { color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 
   .stat-track {
     height: 5px;
@@ -495,42 +632,39 @@
 
   .stat-fill {
     height: 100%;
-    background: var(--accent);
     border-radius: 999px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--tier-color, var(--accent)) 70%, black 10%), var(--tier-color, var(--accent)));
   }
 
-  .stat-val {
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    color: var(--ink-dim);
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .ability-line {
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xs);
-    color: var(--ink-dim);
+  .edge-row {
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
     border-top: 1px solid var(--border-soft);
     padding-top: 9px;
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
   }
 
-  .ability-line .ability-name { color: var(--ink); }
-  .ability-line .ability-pwr { color: var(--accent-2); font-variant-numeric: tabular-nums; }
+  .edge-col { display: flex; flex-direction: column; gap: 4px; }
+
+  .edge-label {
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
 
   .modifier-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 4px;
   }
 
   .modifier-chip {
     font-family: var(--font-mono);
-    font-size: 0.625rem;
-    padding: 2px 7px;
+    font-size: 0.5625rem;
+    padding: 2px 6px;
     border-radius: 5px;
     white-space: nowrap;
   }
@@ -545,12 +679,29 @@
     background: color-mix(in srgb, var(--loss) 14%, transparent);
   }
 
-  .flavor-text {
-    font-size: var(--fs-2xs);
-    color: var(--ink-faint);
+  .flavor-box {
+    z-index: 1;
     border-top: 1px solid var(--border-soft);
     padding-top: 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .flavor-text {
+    font-size: 0.6875rem;
+    color: var(--ink-faint);
     font-style: italic;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-faint);
+    opacity: 0.75;
   }
 
   .unlock-condition {
@@ -748,64 +899,93 @@
       );
     }
 
-    function cardHTML(stage) {
+    function cardHTML(stage, family) {
       const topAbility = stage.abilities[0];
       const unlockLabel =
         stage.stageIndex === 0
           ? "Starting form"
           : "Lv. " + stage.unlock.level + (stage.unlock.condition ? " · " + stage.unlock.condition : "");
+      const dexChip = String(family.dexNumber).padStart(3, "0") + "-" + String(stage.stageIndex + 1);
+      const portraitHTML = ART_MAP[stage.id]
+        ? '<img src="' + ART_MAP[stage.id] + '" alt="' + stage.name + '" loading="lazy" />'
+        : '<span class="portrait-fallback">$' + tickerFor(stage.name) + "</span>";
       return (
         '<div class="ticker-card" style="--tier-color:var(--tier-' +
         stage.rarity +
         ')" data-stage-id="' +
         stage.id +
         '">' +
+        '<div class="card-inner">' +
         '<div class="card-top">' +
-        '<span class="tier-pill"><span class="tier-dot"></span>' +
-        TIER_LABEL[stage.rarity] +
-        "</span>" +
-        '<span class="dex-no">PWR ' +
-        powerIndex(stage) +
-        "</span>" +
-        "</div>" +
-        (ART_MAP[stage.id]
-          ? '<div class="card-portrait"><img src="' + ART_MAP[stage.id] + '" alt="' + stage.name + '" loading="lazy" /></div>'
-          : "") +
-        '<div class="ticker-code">$' +
-        tickerFor(stage.name) +
-        "</div>" +
         '<div><div class="card-name">' +
         stage.name +
         '</div><div class="card-title">' +
         stage.title +
         "</div></div>" +
+        '<span class="hp-badge"><span class="hp-label">PWR</span><span class="hp-value">' +
+        powerIndex(stage) +
+        "</span></span>" +
+        "</div>" +
+        '<div class="card-subhead">' +
+        '<span class="tier-pill"><span class="tier-dot"></span>' +
+        TIER_LABEL[stage.rarity] +
+        "</span>" +
+        '<span class="ticker-code">$' +
+        tickerFor(stage.name) +
+        "</span>" +
+        "</div>" +
+        '<div class="art-window">' +
+        portraitHTML +
+        '<span class="dex-chip">' +
+        dexChip +
+        "</span>" +
+        "</div>" +
         '<span class="sector-tag">' +
         stage.archetype +
-        "</span>" +
-        '<div class="unlock-condition">' +
+        " · " +
         unlockLabel +
-        "</div>" +
-        '<div class="stat-rows">' +
-        STAT_FIELDS.map(
-          ([key, label]) =>
-            '<div class="stat-row"><span class="stat-label">' +
-            label +
-            '</span><span class="stat-track"><span class="stat-fill" style="width:' +
-            stage.stats[key] +
-            '%"></span></span><span class="stat-val">' +
-            stage.stats[key] +
-            "</span></div>"
-        ).join("") +
-        "</div>" +
-        '<div class="ability-line"><span class="ability-name">' +
+        "</span>" +
+        '<div class="ability-box">' +
+        '<div class="ability-line"><span class="energy-icon"></span><span class="ability-name">' +
         topAbility.name +
-        '</span><span class="ability-pwr">PWR ' +
+        '</span><span class="ability-pwr">' +
         topAbility.power +
         "</span></div>" +
-        modifierChips(stage.strengths, "gain") +
-        modifierChips(stage.weaknesses, "loss") +
-        '<div class="flavor-text">' +
+        '<div class="ability-desc">' +
+        topAbility.description +
+        "</div>" +
+        "</div>" +
+        '<div class="stat-chart">' +
+        '<div class="stat-chart-title">Trading DNA</div>' +
+        '<div class="stat-grid">' +
+        STAT_FIELDS.map(
+          ([key, label]) =>
+            '<div class="stat-row"><span class="stat-row-head"><span>' +
+            label +
+            '</span><span class="stat-val">' +
+            stage.stats[key] +
+            '</span></span><span class="stat-track"><span class="stat-fill" style="width:' +
+            stage.stats[key] +
+            '%"></span></span></div>'
+        ).join("") +
+        "</div>" +
+        "</div>" +
+        '<div class="edge-row">' +
+        '<div class="edge-col"><span class="edge-label">Strengths</span>' +
+        (modifierChips(stage.strengths, "gain") || '<span class="modifier-chip gain" style="opacity:.4">None yet</span>') +
+        "</div>" +
+        '<div class="edge-col"><span class="edge-label">Weaknesses</span>' +
+        (modifierChips(stage.weaknesses, "loss") || '<span class="modifier-chip loss" style="opacity:.4">None yet</span>') +
+        "</div>" +
+        "</div>" +
+        '<div class="flavor-box">' +
+        '<p class="flavor-text">' +
         stage.flavorText +
+        "</p>" +
+        '<div class="card-footer"><span>No. ' +
+        dexChip +
+        '</span><span>Illus. Nova AI</span></div>' +
+        "</div>" +
         "</div>" +
         "</div>"
       );
@@ -855,7 +1035,7 @@
         let chainHTML = "";
         stageObjs.forEach((stage, i) => {
           if (i > 0) chainHTML += connectorHTML(stageObjs[i - 1], stage);
-          chainHTML += cardHTML(stage);
+          chainHTML += cardHTML(stage, family);
         });
         chain.innerHTML = chainHTML;
         row.appendChild(chain);

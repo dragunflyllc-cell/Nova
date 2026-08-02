@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { characterStageById } from "@nova/nova-dex";
+import { characterFamilies, characterStageById } from "@nova/nova-dex";
 import { AuthNav } from "../components/AuthNav";
 import { CharacterCard } from "../components/CharacterCard";
 import { TickerTape } from "../components/TickerTape";
@@ -53,7 +53,9 @@ export default async function HomePage() {
           <div className={styles.crewGrid}>
             {FEATURED_STAGE_IDS.map((id) => {
               const stage = characterStageById[id];
-              return stage ? <CharacterCard key={id} stage={stage} /> : null;
+              if (!stage) return null;
+              const family = characterFamilies.find((f) => f.id === stage.familyId);
+              return <CharacterCard key={id} stage={stage} dexNumber={family?.dexNumber} />;
             })}
           </div>
         </section>

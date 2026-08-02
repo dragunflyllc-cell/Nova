@@ -124,7 +124,7 @@ export function NovaDexBrowser({ families, stageById }: NovaDexBrowserProps) {
             <div className={styles.chain}>
               {stages.map((stage) => (
                 <div key={stage.id} className={styles.chainCard} data-dimmed={!matches(stage)}>
-                  <CharacterCard stage={stage} />
+                  <CharacterCard stage={stage} dexNumber={family.dexNumber} />
                 </div>
               ))}
             </div>
