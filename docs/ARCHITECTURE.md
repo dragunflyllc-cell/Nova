@@ -145,10 +145,26 @@ pre-launch:
   used in the original NovaDex artifact (`components/CharacterCard.tsx`,
   design tokens in `app/globals.css`). No auth required; this is meant to be
   shared.
-- Login/register/dashboard UI intentionally doesn't exist yet — the backend
-  for it is fully built and tested (see Auth above), but there's little for a
-  logged-in user to *do* until real broker data exists, so the UI for it is
-  deferred rather than shipped empty.
+- **Login / register / dashboard** (`app/login`, `app/register`,
+  `app/dashboard`) — a real session, not a mock. `lib/auth-context.tsx` holds
+  tokens in `localStorage`, validates the session against `GET /me` on load,
+  and its `apiFetch` helper transparently retries once via `/auth/refresh` on
+  a 401 before giving up and logging out. The dashboard route-guards itself
+  client-side (redirects to `/login` if there's no session) rather than via
+  Next.js middleware — acceptable for now, revisit if this needs to resist a
+  user just disabling JS.
+  - **First-run flow**: a new user with zero owned characters sees a starter
+    picker (4 curated families — impulsive, patient, resilient, fearful — so
+    the choice says something about how you see yourself as a trader) instead
+    of the full 38-family NovaDex. This is the "start with one, unlock the
+    rest through real behavior" design agreed on earlier — the unlock-via-
+    trade-detection half of that isn't built yet (no trade data to detect
+    behavior from), so today `POST /me/characters/claim` is the only way in.
+  - Verified end to end with Playwright, not just typechecked: register →
+    redirected to dashboard → claim a starter → it appears in the crew with
+    correct level/XP → log out → direct navigation to `/dashboard` correctly
+    redirects to `/login` → log back in → the claimed character persists
+    (real Postgres round-trip, not local state).
 
 **One monorepo gotcha worth knowing**: packages here use Node/NodeNext-style
 `.js` import specifiers that point at `.ts` source files (standard for TS

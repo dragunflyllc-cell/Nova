@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { characterStageById } from "@nova/nova-dex";
+import { AuthNav } from "../components/AuthNav";
 import { CharacterCard } from "../components/CharacterCard";
 import { WaitlistForm } from "../components/WaitlistForm";
 import { getWaitlistCount } from "../lib/api";
@@ -16,9 +17,7 @@ export default async function HomePage() {
         <div className={styles.wordmark}>
           NOVA<span>DEX</span>
         </div>
-        <Link href="/novadex" className={styles.navLink}>
-          Browse the NovaDex
-        </Link>
+        <AuthNav />
       </header>
 
       <section className={styles.hero}>

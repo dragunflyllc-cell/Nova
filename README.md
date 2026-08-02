@@ -43,8 +43,10 @@ pnpm typecheck     # typecheck all packages
 pnpm build
 ```
 
-Visit `localhost:3000` for the (pre-launch) landing page and waitlist, or
-`localhost:3000/novadex` to browse the full character roster.
+Visit `localhost:3000` for the (pre-launch) landing page and waitlist,
+`localhost:3000/novadex` to browse the full character roster, or
+`localhost:3000/register` to create a real account and claim a starter
+character.
 
 Run `apps/api`'s tests with `pnpm --filter @nova/api test`.
 
