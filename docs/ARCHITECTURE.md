@@ -97,7 +97,9 @@ quantity). Fully covered by tests and also verified against real seeded
 database rows end to end (`GET /me/trades` groups a user's stored fills by
 symbol and matches each group) — this part doesn't depend on Tradovate
 credentials to validate, only the shape of a fill, which is fixed
-internally regardless of broker.
+internally regardless of broker. `apps/api/src/trades/service.ts` holds the
+shared "load this user's fills, group by symbol, match" step so both
+`GET /me/trades` and the behavior-XP sync below use the same logic.
 
 Two things it deliberately does NOT do yet:
 - **Dollar P&L.** `realizedPointsPnl` is in points, not dollars — converting
@@ -129,6 +131,41 @@ and community forum instead:
   `apps/api/src/routes/brokers.ts` tested via curl): auth gating, the
   authorize-URL construction, OAuth state-token CSRF protection, and the
   fill-parsing validation logic against representative fixtures.
+
+## Behavior-driven XP
+
+`apps/api/src/behavior/scoring.ts` is the first real implementation of "your
+character levels up from how you actually trade" — replacing the old
+`POST /me/characters/:id/award-xp` endpoint (deleted; it just let XP be
+granted arbitrarily for testing before any real signal existed).
+
+Scoped deliberately to what's honestly detectable from `MatchedTrade` data
+(timestamps and realized P&L) — not an attempt to parse things like "used a
+pre-written plan" that the data can't actually show:
+- Every closed trade earns base XP, +bonus if it was a win.
+- **Revenge trading**: re-entering a new position within 5 minutes of a
+  loss closing halves that trade's XP. Named directly after the behavior
+  several NovaDex families call out (FOMO Monkey's "Revenge Trade", Revenge
+  Rhino's "Charge").
+- **A deliberate cooldown**: waiting 30+ minutes after a loss before
+  re-entering earns a bonus, mirroring Ape Apprentice's "Cooldown" ability.
+- Everything else — most trades — earns base ± win bonus with no signal.
+  That's expected, not a gap.
+
+`POST /me/characters/sync-xp` (`apps/api/src/routes/characters.ts`) pulls a
+user's matched trades via `trades/service.ts`, scores them, and **sets**
+(not increments) every owned character's `xp` to the recomputed total. That
+makes it idempotent without a "last synced trade" cursor — calling it twice
+in a row, or after fills sync again with nothing new, is a no-op. The
+tradeoff: every owned character currently gets the same XP from behavior:
+there's no per-archetype attribution yet (a revenge trade should probably
+hit an "impulsive" character harder than a "patient" one it doesn't). That's
+a real v1 simplification, tracked here rather than silently shipped.
+
+Verified against real seeded fills end to end (Postgres, not just unit
+tests): registered a user, claimed a starter, seeded a loss followed by a
+same-symbol re-entry one minute later, called `sync-xp`, and confirmed both
+the revenge-trade penalty and idempotency on a second call.
 
 ## Web app
 

@@ -3,14 +3,12 @@ import { z } from "zod";
 import { prisma } from "@nova/db";
 import type { UserCharacter } from "@nova/db";
 import { characterFamilies, currentStageForFamily, levelForXp } from "@nova/nova-dex";
+import { totalXpFromTrades } from "../behavior/scoring.js";
 import { authenticate } from "../plugins/authenticate.js";
+import { getMatchedTradesForUser } from "../trades/service.js";
 
 const claimSchema = z.object({
   familyId: z.string().min(1),
-});
-
-const awardXpSchema = z.object({
-  amount: z.number().int().positive().max(10_000),
 });
 
 function serializeOwnedCharacter(owned: UserCharacter) {
@@ -55,20 +53,33 @@ export async function characterRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(201).send(serializeOwnedCharacter(owned));
   });
 
-  // Temporary: awards XP directly so the capture -> level -> evolve loop is testable
-  // end to end. Once trade tracking exists, XP should be earned from real trading
-  // behavior (journaled trades, quest completion), not granted through this endpoint.
-  app.post("/me/characters/:id/award-xp", { preHandler: authenticate }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const body = awardXpSchema.parse(request.body);
-    const owned = await prisma.userCharacter.findUnique({ where: { id } });
-    if (!owned || owned.userId !== request.userId) {
-      return reply.code(404).send({ error: "Character not found" });
+  // Recomputes XP from real trading behavior (apps/api/src/behavior/scoring.ts)
+  // and writes it to every owned character. This SETS xp from a full
+  // recompute over all of the user's matched trades rather than
+  // incrementing it — deliberately, so calling this twice in a row (or
+  // after the same fills sync again) is idempotent without needing a
+  // "last synced trade" cursor. It does mean every owned character gets
+  // the same xp today; there's no per-archetype attribution of which
+  // character a given behavior signal should favor yet (e.g. a revenge
+  // trade penalizing an "impulsive" character more than a "patient" one)
+  // — a real v1 simplification, not an oversight.
+  app.post("/me/characters/sync-xp", { preHandler: authenticate }, async (request, reply) => {
+    const owned = await prisma.userCharacter.findMany({ where: { userId: request.userId } });
+    if (owned.length === 0) {
+      return reply.code(404).send({ error: "Claim a starter character before syncing XP" });
     }
-    const updated = await prisma.userCharacter.update({
-      where: { id },
-      data: { xp: { increment: body.amount } },
+
+    const trades = await getMatchedTradesForUser(request.userId!);
+    const xpFromBehavior = totalXpFromTrades(trades);
+
+    const updated = await prisma.$transaction(
+      owned.map((oc) => prisma.userCharacter.update({ where: { id: oc.id }, data: { xp: xpFromBehavior } })),
+    );
+
+    return reply.send({
+      tradesScored: trades.length,
+      xpFromBehavior,
+      characters: updated.map(serializeOwnedCharacter),
     });
-    return reply.send(serializeOwnedCharacter(updated));
   });
 }

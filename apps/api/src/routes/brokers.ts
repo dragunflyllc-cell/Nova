@@ -5,7 +5,7 @@ import { signStateToken, verifyStateToken } from "../auth/tokens.js";
 import { tradovateAdapter } from "../brokers/tradovate.js";
 import { authenticate } from "../plugins/authenticate.js";
 import { decrypt, encrypt } from "../security/encryption.js";
-import { matchFillsToTrades, type MatchableFill } from "../trades/matching.js";
+import { getMatchedTradesForUser } from "../trades/service.js";
 
 const OAUTH_STATE_PURPOSE = "tradovate-oauth";
 
@@ -118,25 +118,7 @@ export async function brokerRoutes(app: FastifyInstance): Promise<void> {
   // real broker data yet, so it's cheap to keep this a pure read/derive
   // step until that's proven, rather than lock in a Trade table schema now.
   app.get("/me/trades", { preHandler: authenticate }, async (request, reply) => {
-    const connections = await prisma.brokerConnection.findMany({ where: { userId: request.userId } });
-    const fills = await prisma.brokerFill.findMany({
-      where: { connectionId: { in: connections.map((c) => c.id) } },
-      orderBy: { filledAt: "asc" },
-    });
-
-    const bySymbol = new Map<string, MatchableFill[]>();
-    for (const f of fills) {
-      if (f.side !== "buy" && f.side !== "sell") {
-        continue; // defensive: only fills we wrote ourselves should exist, and they're always "buy"/"sell"
-      }
-      const list = bySymbol.get(f.contractSymbol) ?? [];
-      list.push({ externalFillId: f.externalFillId, side: f.side, quantity: f.quantity, price: f.price, filledAt: f.filledAt });
-      bySymbol.set(f.contractSymbol, list);
-    }
-
-    const trades = [...bySymbol.entries()].flatMap(([contractSymbol, symbolFills]) =>
-      matchFillsToTrades(symbolFills).map((t) => ({ contractSymbol, ...t })),
-    );
+    const trades = await getMatchedTradesForUser(request.userId!);
     trades.sort((a, b) => b.closedAt.getTime() - a.closedAt.getTime());
 
     return reply.send(
