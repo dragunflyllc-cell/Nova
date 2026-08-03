@@ -432,30 +432,6 @@
     pointer-events: none;
   }
 
-  .holo-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    mix-blend-mode: overlay;
-    background: repeating-linear-gradient(
-      115deg,
-      rgba(79, 209, 255, 0.55) 0%,
-      rgba(139, 110, 246, 0.5) 12%,
-      rgba(168, 85, 247, 0.5) 24%,
-      rgba(79, 209, 255, 0.5) 36%,
-      rgba(139, 110, 246, 0.55) 48%
-    );
-    background-size: 220% 220%;
-    background-position: 0% 50%;
-    transition: background-position 0.6s ease, opacity 0.3s ease;
-  }
-
-  .ticker-card:hover .holo-layer {
-    opacity: 0.45;
-    background-position: 100% 60%;
-  }
-
   .gem-badge {
     position: absolute;
     right: 12px;
@@ -711,8 +687,6 @@
       ["emotionalControl", "Emo. Ctrl", "#818cf8"],
     ];
 
-    const HOLO_TIERS = new Set(["rare", "epic", "legendary"]);
-
     function tickerFor(name) {
       const first = name.split(" ")[0].toUpperCase().replace(/[^A-Z]/g, "");
       if (first.length <= 5) return first;
@@ -803,7 +777,6 @@
       const topStrength = stage.strengths[0];
       const topWeakness = stage.weaknesses[0];
       const dexChip = String(family.dexNumber).padStart(3, "0") + "-" + String(stage.stageIndex + 1);
-      const holo = HOLO_TIERS.has(stage.rarity);
       const portraitHTML = ART_MAP[stage.id]
         ? '<img src="' + ART_MAP[stage.id] + '" alt="' + stage.name + '" loading="lazy" />'
         : '<div class="portrait-fallback"><span>' + tickerFor(stage.name) + "</span></div>";
@@ -821,7 +794,6 @@
         "</div>" +
         '<div class="scrim-top"></div>' +
         '<div class="scrim-bottom"></div>' +
-        (holo ? '<div class="holo-layer"></div>' : "") +
         '<span class="gem-badge"></span>' +
         '<div class="card-content">' +
         '<div class="card-top">' +

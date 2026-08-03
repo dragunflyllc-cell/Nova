@@ -13,8 +13,6 @@ const STAT_FIELDS: [key: keyof CharacterStage["stats"], label: string, color: st
   ["emotionalControl", "Emo. Ctrl", "#818cf8"],
 ];
 
-const HOLO_TIERS = new Set(["rare", "epic", "legendary"]);
-
 export interface CharacterCardProps {
   stage: CharacterStage;
   /** 1-based position within the family, used for the card's dex chip (e.g. "003-2"). */
@@ -31,22 +29,15 @@ export function CharacterCard({ stage, dexNumber, level, xp }: CharacterCardProp
   const topStrength = stage.strengths[0];
   const topWeakness = stage.weaknesses[0];
   const isOwned = level !== undefined && xp !== undefined;
-  const holo = HOLO_TIERS.has(stage.rarity);
 
   return (
-    <div
-      className={styles.card}
-      data-holo={holo || undefined}
-      style={{ ["--tier-color" as string]: tierVar }}
-      title={stage.flavorText}
-    >
+    <div className={styles.card} style={{ ["--tier-color" as string]: tierVar }} title={stage.flavorText}>
       <div className={styles.frame}>
         <div className={styles.artLayer}>
           <CharacterPortrait stageId={stage.id} name={stage.name} />
         </div>
         <div className={styles.scrimTop} />
         <div className={styles.scrimBottom} />
-        {holo ? <div className={styles.holoLayer} /> : null}
         <span className={styles.gemBadge} />
 
         <div className={styles.content}>

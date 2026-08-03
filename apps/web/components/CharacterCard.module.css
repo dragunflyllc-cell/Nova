@@ -93,30 +93,6 @@
   pointer-events: none;
 }
 
-.holoLayer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  mix-blend-mode: overlay;
-  background: repeating-linear-gradient(
-    115deg,
-    rgba(79, 209, 255, 0.55) 0%,
-    rgba(139, 110, 246, 0.5) 12%,
-    rgba(168, 85, 247, 0.5) 24%,
-    rgba(79, 209, 255, 0.5) 36%,
-    rgba(139, 110, 246, 0.55) 48%
-  );
-  background-size: 220% 220%;
-  background-position: 0% 50%;
-  transition: background-position 0.6s ease, opacity 0.3s ease;
-}
-
-.card:hover .holoLayer {
-  opacity: 0.45;
-  background-position: 100% 60%;
-}
-
 .gemBadge {
   position: absolute;
   right: 12px;
