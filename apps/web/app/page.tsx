@@ -28,7 +28,9 @@ export default async function HomePage() {
       <div className={styles.content}>
         <section className={styles.hero}>
           <p className={styles.eyebrow}>Futures trading, for prop-firm traders</p>
-          <h1 className={styles.headline}>Your trading habits, turned into a game you can actually win.</h1>
+          <h1 className={styles.headline}>
+            Your trading habits, turned into <span className={styles.headlineAccent}>a game you can actually win</span>.
+          </h1>
           <p className={styles.subhead}>
             Nova tracks your real trades and turns your behavior — FOMO, discipline, revenge trading, patience —
             into a roster of characters that level up and evolve as you actually improve. Free to join. No

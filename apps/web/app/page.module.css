@@ -28,6 +28,7 @@
 
 .wordmark span {
   color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .navLink {
@@ -53,12 +54,28 @@
 }
 
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
-  margin: 0 0 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin: 0 0 20px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
 }
 
 .headline {
@@ -67,6 +84,13 @@
   line-height: 1.08;
   text-wrap: balance;
   margin: 0 0 18px;
+}
+
+.headlineAccent {
+  background: linear-gradient(100deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .subhead {
@@ -92,9 +116,25 @@
 }
 
 .section {
+  position: relative;
   padding-top: 56px;
-  border-top: 1px solid var(--border-soft);
   margin-top: 56px;
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 45%, var(--border-soft)) 35%,
+    color-mix(in srgb, var(--accent-2) 45%, var(--border-soft)) 65%,
+    transparent
+  );
 }
 
 .sectionHead {

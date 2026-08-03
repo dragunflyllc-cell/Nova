@@ -36,6 +36,7 @@ export function CharacterCard({ stage, dexNumber, level, xp }: CharacterCardProp
         <div className={styles.artLayer}>
           <CharacterPortrait stageId={stage.id} name={stage.name} />
         </div>
+        <div className={styles.artTint} />
         <div className={styles.scrimTop} />
         <div className={styles.scrimBottom} />
         <span className={styles.gemBadge} />

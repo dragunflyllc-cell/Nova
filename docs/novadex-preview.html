@@ -73,6 +73,34 @@
     font-size: var(--fs-base);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  body::before {
+    background:
+      radial-gradient(ellipse 900px 600px at 6% -8%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
+      radial-gradient(ellipse 800px 700px at 96% 12%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 60%),
+      radial-gradient(ellipse 900px 700px at 50% 115%, color-mix(in srgb, var(--tier-rare) 14%, transparent), transparent 65%);
+  }
+
+  body::after {
+    opacity: 0.5;
+    background: repeating-linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--accent) 4%, transparent) 0px,
+      transparent 2px,
+      transparent 60px,
+      color-mix(in srgb, var(--accent) 3%, transparent) 62px
+    );
   }
 
   .page {
@@ -389,6 +417,20 @@
     height: 100%;
     object-fit: contain;
     display: block;
+    filter: saturate(1.08) contrast(1.06) brightness(0.96);
+  }
+
+  .art-tint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--tier-color, var(--accent)) 24%, transparent),
+      transparent 45%,
+      color-mix(in srgb, var(--accent-2) 20%, transparent) 100%
+    );
+    mix-blend-mode: soft-light;
   }
 
   .portrait-fallback {
@@ -792,6 +834,7 @@
         '<div class="art-layer">' +
         portraitHTML +
         "</div>" +
+        '<div class="art-tint"></div>' +
         '<div class="scrim-top"></div>' +
         '<div class="scrim-bottom"></div>' +
         '<span class="gem-badge"></span>' +

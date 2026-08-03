@@ -50,6 +50,20 @@
   height: 100%;
   object-fit: contain;
   display: block;
+  filter: saturate(1.08) contrast(1.06) brightness(0.96);
+}
+
+.artTint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--tier-color, var(--accent)) 24%, transparent),
+    transparent 45%,
+    color-mix(in srgb, var(--accent-2) 20%, transparent) 100%
+  );
+  mix-blend-mode: soft-light;
 }
 
 .portraitFallback {
