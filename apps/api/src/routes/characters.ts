@@ -3,9 +3,9 @@ import { z } from "zod";
 import { prisma } from "@nova/db";
 import type { UserCharacter } from "@nova/db";
 import { characterFamilies, currentStageForFamily, levelForXp } from "@nova/nova-dex";
-import { totalXpFromTrades } from "../behavior/scoring.js";
+import { scoreTrades } from "../behavior/scoring.js";
 import { authenticate } from "../plugins/authenticate.js";
-import { getMatchedTradesForUser } from "../trades/service.js";
+import { getMatchedTradesForUser, tradeRefFor } from "../trades/service.js";
 
 const claimSchema = z.object({
   familyId: z.string().min(1),
@@ -63,6 +63,10 @@ export async function characterRoutes(app: FastifyInstance): Promise<void> {
   // character a given behavior signal should favor yet (e.g. a revenge
   // trade penalizing an "impulsive" character more than a "patient" one)
   // — a real v1 simplification, not an oversight.
+  //
+  // Also persists one BehaviorEvent per signal detected (revenge trade /
+  // cooldown) — the durable log described in schema.prisma's BehaviorEvent
+  // doc comment, upserted so re-running this never duplicates rows.
   app.post("/me/characters/sync-xp", { preHandler: authenticate }, async (request, reply) => {
     const owned = await prisma.userCharacter.findMany({ where: { userId: request.userId } });
     if (owned.length === 0) {
@@ -70,7 +74,26 @@ export async function characterRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const trades = await getMatchedTradesForUser(request.userId!);
-    const xpFromBehavior = totalXpFromTrades(trades);
+    const scored = scoreTrades(trades);
+    const xpFromBehavior = scored.reduce((sum, s) => sum + s.xp, 0);
+
+    for (const s of scored) {
+      for (const signal of s.signals) {
+        const signalType = signal === "revengeTrade" ? "REVENGE_TRADE" : "COOLDOWN_AFTER_LOSS";
+        const tradeRef = tradeRefFor(s.trade);
+        await prisma.behaviorEvent.upsert({
+          where: { userId_signal_tradeRef_ruleId: { userId: request.userId!, signal: signalType, tradeRef, ruleId: "" } },
+          create: {
+            userId: request.userId!,
+            signal: signalType,
+            tradeRef,
+            detectedAt: s.trade.closedAt,
+            metadata: { xp: s.xp },
+          },
+          update: { detectedAt: s.trade.closedAt, metadata: { xp: s.xp } },
+        });
+      }
+    }
 
     const updated = await prisma.$transaction(
       owned.map((oc) => prisma.userCharacter.update({ where: { id: oc.id }, data: { xp: xpFromBehavior } })),

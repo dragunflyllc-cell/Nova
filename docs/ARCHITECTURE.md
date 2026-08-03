@@ -167,6 +167,78 @@ tests): registered a user, claimed a starter, seeded a loss followed by a
 same-symbol re-entry one minute later, called `sync-xp`, and confirmed both
 the revenge-trade penalty and idempotency on a second call.
 
+## Custom trading rules & accountability
+
+`apps/api/src/behavior/rules.ts` lets a trader define their own rules and
+have Nova check them against real trades — "an AI assistant that holds you
+accountable," scoped to what's actually mechanically checkable today. Five
+rule types, each verifiable purely from `MatchedTrade` data:
+`MAX_TRADES_PER_DAY`, `MIN_COOLDOWN_AFTER_LOSS_MINUTES`, `MAX_POSITION_SIZE`,
+`MAX_DAILY_LOSS_POINTS` (in points, same points-not-dollars boundary as
+trade matching), and `TRADING_HOURS_WINDOW_UTC`.
+
+Deliberately does **not** support freeform rules like "always wait for a
+confirmed candle close" or "journal every trade" — nothing in `MatchedTrade`
+can verify those, and pretending to would be exactly the kind of dishonest
+signal this codebase has avoided elsewhere (see the points-vs-dollars and
+Tradovate verified/assumed sections above). A freeform rule + AI-narrated
+coaching layer is a real, separate future feature, but it needs an actual
+LLM call (an Anthropic API key, which isn't configured in this environment)
+to do honestly — it is not built yet, and nothing here fakes it.
+
+**Routes** (`apps/api/src/routes/rules.ts`): `GET/POST /me/rules`,
+`DELETE /me/rules/:id` (soft-delete via `active`), and
+`POST /me/rules/check`, which re-evaluates every active rule against the
+user's current trades and upserts one `BehaviorEvent` row per
+(rule, trade) — `RULE_ADHERENCE` or `RULE_VIOLATION`. Safe to call
+repeatedly: the upsert key is `(userId, signal, tradeRef, ruleId)`, so
+re-checking the same trade against the same rule overwrites rather than
+duplicates. `POST /me/characters/sync-xp` persists `BehaviorEvent` rows the
+same way for the core `REVENGE_TRADE`/`COOLDOWN_AFTER_LOSS` signals.
+
+**Why a persisted event log, not just the ephemeral XP total**: `sync-xp`
+only ever returns a recomputed number — there's no record of *which* trades
+tripped *which* signal once the response is gone. `BehaviorEvent` exists so
+that history survives: an auditable, per-trade log of every signal ever
+detected, independent of whatever reads it later (a personal dashboard, an
+export, a future report). Recording this data is not the same decision as
+sharing it — see below.
+
+### Behavior data & consent
+
+The user asked for this system to be structured so behavior data could
+eventually be sold or reported to prop firms or other interested parties
+(per `CLAUDE.md`'s Enterprise section: prop firm behavior dashboards, risk
+monitoring, trader rankings). Two things had to be decided before writing
+a line of this code:
+
+- **Consent is opt-in, off by default.** `User.dataSharingConsent`
+  (`schema.prisma`) defaults to `false`. `PUT /me/data-sharing-consent`
+  lets a user explicitly turn it on (and records when). No other code path
+  in this codebase flips it, and no code path here reads it to actually
+  export or transmit anything — that layer doesn't exist yet. Whoever
+  builds it must treat this flag as a hard gate, not a formality: a user
+  who hasn't opted in must never appear in an export, aggregated or not.
+- **Recording ≠ selling.** `BehaviorEvent` rows are written for every user
+  regardless of their consent flag, because the log itself is just Nova's
+  own accountability feature working (the same way `GET /me/trades` doesn't
+  ask permission to compute — it's the product). What consent gates is
+  whether that data can ever leave this system toward a third party.
+
+What's explicitly **not** built, and is a separate business + legal step
+before any of this could actually generate revenue: an aggregation/export
+pipeline, anonymization design, a prop-firm-facing API or dashboard, and
+the actual commercial agreements with any firm. Standing up a real data
+product also deserves its own privacy-policy and terms-of-service language
+before it ships — not something to improvise inside a schema comment.
+
+Verified end to end against real seeded Postgres data: created two rules
+(`MAX_TRADES_PER_DAY: 1`, `MAX_POSITION_SIZE: 1`), seeded three same-day
+trades, confirmed the 2nd and 3rd were correctly flagged as violations,
+confirmed a repeat `POST /me/rules/check` call didn't duplicate
+`BehaviorEvent` rows, and confirmed the consent endpoint defaults to `false`
+and only flips on explicit request.
+
 ## Web app
 
 `apps/web` is a Next.js app, currently scoped to what's actually usable

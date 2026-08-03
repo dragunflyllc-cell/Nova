@@ -40,9 +40,19 @@ model User {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
+  /// Opt-IN, off by default. Nothing derived from this user's trades or
+  /// behavior may be included in any enterprise/prop-firm-facing data
+  /// product unless this is explicitly true — see docs/ARCHITECTURE.md's
+  /// "Behavior data & consent" section before building anything that reads
+  /// this flag to include a user in an export/report.
+  dataSharingConsent   Boolean   @default(false)
+  dataSharingConsentAt DateTime?
+
   refreshTokens     RefreshToken[]
   characters        UserCharacter[]
   brokerConnections BrokerConnection[]
+  tradingRules      TradingRule[]
+  behaviorEvents    BehaviorEvent[]
 
   @@map("users")
 }
@@ -121,4 +131,72 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+/// A rule type Nova can mechanically check against a user's real matched
+/// trades (apps/api/src/behavior/rules.ts owns the check logic). Deliberately
+/// scoped to things verifiable from timestamps/quantity/price/P&L alone —
+/// no rule type here claims to check something the data can't actually show
+/// (e.g. "waited for a confirmed candle"). Freeform, non-verifiable rules are
+/// a separate future feature (an AI-narrated coaching layer), not this table.
+enum TradingRuleType {
+  MAX_TRADES_PER_DAY
+  MIN_COOLDOWN_AFTER_LOSS_MINUTES
+  MAX_POSITION_SIZE
+  MAX_DAILY_LOSS_POINTS
+  TRADING_HOURS_WINDOW_UTC
+}
+
+/// A user-authored rule they want held accountable to. `params` shape
+/// depends on `type` (see apps/api/src/behavior/rules.ts for the exact
+/// schema per type) — kept as Json rather than a column per possible
+/// parameter since each rule type has a different parameter shape.
+model TradingRule {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TradingRuleType
+  params    Json
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+
+  @@index([userId])
+  @@map("trading_rules")
+}
+
+enum BehaviorSignalType {
+  REVENGE_TRADE
+  COOLDOWN_AFTER_LOSS
+  RULE_VIOLATION
+  RULE_ADHERENCE
+}
+
+/// A durable, individually-auditable record of one detected behavior signal
+/// on one trade — persisted rather than only ever computed on the fly
+/// (unlike the XP total in sync-xp, which recomputes from scratch each
+/// call). This is the log that a future reporting/export layer would read
+/// from; it exists independently of whether that layer ever gets built, and
+/// independently of any user's data-sharing consent — recording it is not
+/// the same as sharing it. `tradeRef` is a stable-ish identifier for the
+/// trade (its closing fill id(s) joined), since trades themselves aren't
+/// persisted as their own table yet (see trades/matching.ts's header).
+model BehaviorEvent {
+  id         String             @id @default(uuid())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  signal     BehaviorSignalType
+  tradeRef   String
+  /// Empty string (not null) when this signal isn't tied to a specific
+  /// user-authored rule (REVENGE_TRADE, COOLDOWN_AFTER_LOSS) — kept
+  /// non-nullable on purpose so the unique constraint below actually
+  /// dedupes; Postgres treats NULL as distinct from NULL, which would
+  /// silently defeat this constraint for every non-rule signal.
+  ruleId     String             @default("")
+  detectedAt DateTime
+  metadata   Json
+  createdAt  DateTime           @default(now())
+
+  @@unique([userId, signal, tradeRef, ruleId])
+  @@index([userId])
+  @@map("behavior_events")
 }

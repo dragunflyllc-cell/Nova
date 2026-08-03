@@ -7,6 +7,7 @@ import { env } from "./env.js";
 import { authRoutes } from "./routes/auth.js";
 import { brokerRoutes } from "./routes/brokers.js";
 import { characterRoutes } from "./routes/characters.js";
+import { ruleRoutes } from "./routes/rules.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
 
 const app = Fastify({ logger: true });
@@ -30,6 +31,7 @@ app.get("/novadex/characters", async () => characterStages);
 app.register(authRoutes);
 app.register(characterRoutes);
 app.register(brokerRoutes);
+app.register(ruleRoutes);
 app.register(waitlistRoutes);
 
 app.listen({ port: env.PORT, host: "0.0.0.0" }).catch((err) => {

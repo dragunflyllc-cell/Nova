@@ -33,3 +33,12 @@ export async function getMatchedTradesForUser(userId: string): Promise<UserMatch
     matchFillsToTrades(symbolFills).map((t) => ({ contractSymbol, ...t })),
   );
 }
+
+/**
+ * A stable-ish identifier for a trade, used as the dedupe key for persisted
+ * BehaviorEvent rows — trades aren't a real table with their own id yet
+ * (see matching.ts's header), so this stands in for one.
+ */
+export function tradeRefFor(trade: MatchedTrade): string {
+  return trade.closeFillIds.join(",");
+}
