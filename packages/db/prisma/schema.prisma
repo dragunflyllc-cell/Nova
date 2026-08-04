@@ -53,6 +53,7 @@ model User {
   brokerConnections BrokerConnection[]
   tradingRules      TradingRule[]
   behaviorEvents    BehaviorEvent[]
+  questCompletions  QuestCompletion[]
 
   @@map("users")
 }
@@ -199,4 +200,22 @@ model BehaviorEvent {
   @@unique([userId, signal, tradeRef, ruleId])
   @@index([userId])
   @@map("behavior_events")
+}
+
+/// One user completing one quest (apps/api/src/behavior/quests.ts owns the
+/// fixed quest list and completion-check logic). Once a row exists here the
+/// quest stays completed and its xpReward is never granted again — quest
+/// XP is additive (unlike UserCharacter.xp, which sync-xp recomputes from
+/// scratch each call), so this table is what makes "grant the reward
+/// exactly once" possible.
+model QuestCompletion {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questId     String
+  completedAt DateTime @default(now())
+
+  @@unique([userId, questId])
+  @@index([userId])
+  @@map("quest_completions")
 }

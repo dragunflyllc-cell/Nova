@@ -7,6 +7,7 @@ import { env } from "./env.js";
 import { authRoutes } from "./routes/auth.js";
 import { brokerRoutes } from "./routes/brokers.js";
 import { characterRoutes } from "./routes/characters.js";
+import { progressionRoutes } from "./routes/progression.js";
 import { ruleRoutes } from "./routes/rules.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
 
@@ -31,6 +32,7 @@ app.get("/novadex/characters", async () => characterStages);
 app.register(authRoutes);
 app.register(characterRoutes);
 app.register(brokerRoutes);
+app.register(progressionRoutes);
 app.register(ruleRoutes);
 app.register(waitlistRoutes);
 

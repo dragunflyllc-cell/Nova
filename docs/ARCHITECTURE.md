@@ -239,6 +239,50 @@ confirmed a repeat `POST /me/rules/check` call didn't duplicate
 `BehaviorEvent` rows, and confirmed the consent endpoint defaults to `false`
 and only flips on explicit request.
 
+## Collecting more than a starter: behavior-revealed & quest unlocks
+
+Previously, `POST /me/characters/claim` was the only way into the NovaDex —
+a new user picked one of 4 starters and had no path to a second character.
+`apps/api/src/behavior/unlocks.ts` and `apps/api/src/behavior/quests.ts`
+are that path, and `POST /me/progression/sync`
+(`apps/api/src/routes/progression.ts`) is what checks and grants them.
+There's no separate "catch" UI — a family just gets auto-claimed the moment
+a trader's real trading (or quest progress) crosses its threshold, the same
+way `sync-xp` and `/me/rules/check` already auto-apply their results.
+
+Two unlock mechanisms:
+- **Behavior-revealed** (`unlocks.ts`): a small, explicit mapping from
+  accumulated `BehaviorEvent` signal counts to a specific family, picked so
+  the family's own archetype matches the signal that reveals it —
+  `REVENGE_TRADE` ×3 unlocks Revenge Rhino (archetype: reckless),
+  `COOLDOWN_AFTER_LOSS` ×3 unlocks Cautious Turtle (archetype: disciplined),
+  `RULE_ADHERENCE` ×5 unlocks Rookie Elephant (archetype: consistent). This
+  list is meant to grow as more signals get built (see `scoring.ts` and
+  `rules.ts`), not to stay this short — it only covers signals that
+  actually exist today, same "the NovaDex is never done" principle as the
+  roster itself.
+- **Quest-based** (`quests.ts`): three fixed quests, each checkable from
+  data Nova already has — closing a first trade, creating a first rule, and
+  a "Clean Streak" (5 consecutive rule checks with zero violations) that
+  additionally unlocks a specific family. Quest XP is **additive** and
+  lands on `User.xp`/`User.level` (previously unused fields) rather than
+  `UserCharacter.xp` — that separation matters because `sync-xp`
+  deterministically *recomputes and sets* character XP from trade data on
+  every call; stacking an additive quest bonus onto the same field would
+  get silently erased the next time `sync-xp` runs. Account-level
+  progression (quests) and character-level progression (behavior) are
+  deliberately two different numbers.
+
+Idempotency: `QuestCompletion` rows gate quest rewards so they're granted
+exactly once; behavior unlocks re-check against already-owned families on
+every call. Verified end to end against real seeded Postgres data — seeded
+12 trades engineered to cross all three behavior thresholds at once (3
+revenge-trade patterns, 3 deliberate-cooldown patterns), created one
+generous rule so every trade passed it (12 `RULE_ADHERENCE` events),
+called `sync`, and confirmed all 4 families unlocked, all 3 quests
+completed, account leveled up, and a second `sync` call granted nothing
+new.
+
 ## Web app
 
 `apps/web` is a Next.js app, currently scoped to what's actually usable
