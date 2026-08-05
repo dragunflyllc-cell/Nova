@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { characterStageById } from "@nova/nova-dex";
 import { CharacterCard } from "../../components/CharacterCard";
+import { TradingLog } from "../../components/TradingLog";
 import { useAuth } from "../../lib/auth-context";
 import type { OwnedCharacter } from "../../lib/api";
 import styles from "./page.module.css";
@@ -123,6 +124,8 @@ export default function DashboardPage() {
               <CharacterCard key={oc.id} stage={oc.stage} level={oc.level} xp={oc.xp} />
             ))}
           </div>
+
+          <TradingLog />
         </section>
       )}
     </main>

@@ -82,6 +82,18 @@ to Tradovate going first: it's the only one of these with a public
 OAuth-based cloud REST API built for third parties, with no vendor-approval
 process or per-user fee).
 
+**Testing with real trade history today, without Tradovate approval**:
+`apps/api/src/routes/fills.ts` adds a `MANUAL` `BrokerProvider` — not a real
+broker, just a trader typing in their own fills (`POST /me/fills/manual`).
+It reuses the existing `BrokerConnection`/`BrokerFill` tables (accessToken
+is a meaningless placeholder for this provider) specifically so every
+downstream route that reads fills through a user's connections — trade
+matching, `sync-xp`, `/me/rules/check`, `/me/progression/sync` — picks up
+manually-entered fills with zero changes. This is the answer to "how do I
+test this with my own trading right now": log fills by hand (or from a
+broker statement) via the dashboard's Trading Log panel while Tradovate
+partner approval is pending.
+
 **Data model**: `BrokerConnection` (one user's OAuth link to one provider,
 tokens encrypted at rest via `apps/api/src/security/encryption.ts`) and
 `BrokerFill` (a single raw execution, stored close to the source shape).
@@ -323,15 +335,31 @@ pre-launch:
   - **First-run flow**: a new user with zero owned characters sees a starter
     picker (4 curated families — impulsive, patient, resilient, fearful — so
     the choice says something about how you see yourself as a trader) instead
-    of the full 38-family NovaDex. This is the "start with one, unlock the
-    rest through real behavior" design agreed on earlier — the unlock-via-
-    trade-detection half of that isn't built yet (no trade data to detect
-    behavior from), so today `POST /me/characters/claim` is the only way in.
+    of the full 51-family NovaDex. This is the "start with one, unlock the
+    rest through real behavior" design agreed on earlier — the unlock half
+    is now built (see "Collecting more than a starter" above), so
+    `POST /me/characters/claim` is the entry point but no longer the only
+    way in.
+  - **Trading Log panel** (`components/TradingLog.tsx`, rendered on the
+    dashboard once a starter is claimed): the user-facing surface for
+    everything under "Custom trading rules & accountability" and
+    "Collecting more than a starter" above — log a fill (backed by
+    `POST /me/fills/manual`), create/remove rules, see quest progress, and a
+    "Sync my trading behavior" button that calls `sync-xp`,
+    `/me/rules/check`, and `/me/progression/sync` in sequence and renders
+    the result (XP gained, quests completed, new characters unlocked). This
+    is the concrete answer to "how do I test this with my own trading right
+    now" — no Tradovate approval needed, log fills by hand.
   - Verified end to end with Playwright, not just typechecked: register →
     redirected to dashboard → claim a starter → it appears in the crew with
     correct level/XP → log out → direct navigation to `/dashboard` correctly
     redirects to `/login` → log back in → the claimed character persists
-    (real Postgres round-trip, not local state).
+    (real Postgres round-trip, not local state). Separately, the Trading Log
+    panel was verified through the real UI (not curl): added a rule, logged
+    a loss fill followed by a same-symbol revenge re-entry, clicked sync,
+    and confirmed the on-screen result matched the expected math (15 XP:
+    base 8 for the loss + a revenge-halved 7 for the re-entry) and that the
+    "First Close"/"Rule Setter" quests flipped to Done.
 
 **One monorepo gotcha worth knowing**: packages here use Node/NodeNext-style
 `.js` import specifiers that point at `.ts` source files (standard for TS

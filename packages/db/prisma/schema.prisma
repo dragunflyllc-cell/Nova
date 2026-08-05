@@ -60,6 +60,11 @@ model User {
 
 enum BrokerProvider {
   TRADOVATE
+  /// Not a real broker — a user typing in their own fills by hand (see
+  /// apps/api/src/routes/fills.ts). Lets someone test the whole
+  /// matching/behavior/rules/unlock pipeline with their real trade history
+  /// today, without waiting on Tradovate partner API approval.
+  MANUAL
 }
 
 /// One user's link to one broker account. Tokens are stored encrypted

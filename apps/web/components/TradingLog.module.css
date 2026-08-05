@@ -1,0 +1,190 @@
+.panel {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.panelGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 860px) {
+  .panelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cardSub {
+  color: var(--ink-dim);
+  font-size: 0.8125rem;
+  margin: -6px 0 0;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 100px;
+}
+
+.field label {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.field input,
+.field select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  font-family: var(--font-sans);
+}
+
+.submitBtn {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--accent-ink, #041018);
+  border: none;
+  border-radius: 6px;
+  padding: 9px 14px;
+  white-space: nowrap;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8125rem;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border-radius: 6px;
+}
+
+.listRowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listRowLabel {
+  color: var(--ink);
+}
+
+.listRowMeta {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badgeDone {
+  color: var(--gain);
+  background: color-mix(in srgb, var(--gain) 16%, transparent);
+}
+
+.badgePending {
+  color: var(--ink-faint);
+  background: var(--border-soft);
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--loss);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.emptyLine {
+  color: var(--ink-faint);
+  font-size: 0.8125rem;
+}
+
+.syncBtn {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--accent-2);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 18px;
+}
+
+.syncBtn:disabled {
+  opacity: 0.6;
+}
+
+.syncResult {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.syncResult strong {
+  color: var(--gain);
+}
