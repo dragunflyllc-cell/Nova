@@ -9,6 +9,9 @@ export function AuthNav() {
 
   return (
     <nav className={styles.nav}>
+      <Link href="/learn" className={styles.link}>
+        Learn
+      </Link>
       <Link href="/novadex" className={styles.link}>
         Browse the NovaDex
       </Link>
