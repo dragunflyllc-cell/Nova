@@ -59,9 +59,9 @@
 }
 
 .toc {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -69,8 +69,28 @@
   margin-bottom: 48px;
 }
 
+.tocCategory + .tocCategory {
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.tocCategoryTitle {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+
+.tocCategoryLinks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 20px;
+}
+
 @media (max-width: 560px) {
-  .toc {
+  .tocCategoryLinks {
     grid-template-columns: 1fr;
   }
 }
@@ -94,6 +114,29 @@
   font-size: 0.75rem;
   color: var(--accent-2);
   flex: none;
+}
+
+.category {
+  margin-bottom: 56px;
+}
+
+.categoryHead {
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.categoryTitle {
+  font-size: 1.625rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.categoryDescription {
+  color: var(--ink-dim);
+  font-size: 0.9375rem;
+  max-width: 62ch;
+  margin: 0;
 }
 
 .lessons {
