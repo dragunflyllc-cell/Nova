@@ -1,8 +1,30 @@
 import Link from "next/link";
 import { LESSON_CATEGORIES, type LessonSection } from "../../lib/lessons";
+import {
+  FairValueGapDiagram,
+  KillzonesDiagram,
+  LiquidityGrabDiagram,
+  LongVsShortDiagram,
+  MarginLeverageDiagram,
+  MarketStructureDiagram,
+  OrderBlockDiagram,
+  PremiumDiscountDiagram,
+} from "../../components/learn/diagrams";
 import styles from "./page.module.css";
 
+const DIAGRAM_BY_LESSON: Record<string, React.ComponentType> = {
+  "long-vs-short": LongVsShortDiagram,
+  "contract-specs": MarginLeverageDiagram,
+  "market-structure": MarketStructureDiagram,
+  liquidity: LiquidityGrabDiagram,
+  "order-blocks": OrderBlockDiagram,
+  "fair-value-gaps": FairValueGapDiagram,
+  "premium-discount": PremiumDiscountDiagram,
+  killzones: KillzonesDiagram,
+};
+
 function LessonBlock({ lesson, num }: { lesson: LessonSection; num: string }) {
+  const Diagram = DIAGRAM_BY_LESSON[lesson.id];
   return (
     <section id={lesson.id} className={styles.lesson}>
       <div className={styles.lessonHead}>
@@ -18,6 +40,8 @@ function LessonBlock({ lesson, num }: { lesson: LessonSection; num: string }) {
           {p}
         </p>
       ))}
+
+      {Diagram ? <Diagram /> : null}
 
       {lesson.contractTable ? (
         <div className={styles.tableWrap}>
@@ -55,6 +79,11 @@ function LessonBlock({ lesson, num }: { lesson: LessonSection; num: string }) {
   );
 }
 
+const CATEGORY_ACCENT: Record<string, string> = {
+  fundamentals: "var(--accent)",
+  ict: "var(--accent-2)",
+};
+
 export default function LearnPage() {
   return (
     <main className={styles.page}>
@@ -77,11 +106,15 @@ export default function LearnPage() {
       <nav className={styles.toc} aria-label="Lesson contents">
         {LESSON_CATEGORIES.map((category) => (
           <div key={category.id} className={styles.tocCategory}>
-            <p className={styles.tocCategoryTitle}>{category.title}</p>
+            <p className={styles.tocCategoryTitle} style={{ color: CATEGORY_ACCENT[category.id] }}>
+              {category.title}
+            </p>
             <div className={styles.tocCategoryLinks}>
               {category.lessons.map((lesson, i) => (
                 <a key={lesson.id} href={`#${lesson.id}`} className={styles.tocLink}>
-                  <span className={styles.tocNum}>{String(i + 1).padStart(2, "0")}</span>
+                  <span className={styles.tocNum} style={{ color: CATEGORY_ACCENT[category.id] }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   {lesson.title}
                 </a>
               ))}
@@ -91,7 +124,11 @@ export default function LearnPage() {
       </nav>
 
       {LESSON_CATEGORIES.map((category) => (
-        <div key={category.id} className={styles.category}>
+        <div
+          key={category.id}
+          className={styles.category}
+          style={{ ["--category-accent" as string]: CATEGORY_ACCENT[category.id] }}
+        >
           <div className={styles.categoryHead}>
             <h2 className={styles.categoryTitle}>{category.title}</h2>
             <p className={styles.categoryDescription}>{category.description}</p>

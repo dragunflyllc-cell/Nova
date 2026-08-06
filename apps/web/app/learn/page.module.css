@@ -117,19 +117,23 @@
 }
 
 .category {
-  margin-bottom: 56px;
+  margin-bottom: 64px;
 }
 
 .categoryHead {
-  margin-bottom: 28px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--category-accent) 14%, var(--panel)), var(--panel));
+  border: 1px solid color-mix(in srgb, var(--category-accent) 35%, var(--border));
+  border-left: 3px solid var(--category-accent);
 }
 
 .categoryTitle {
   font-size: 1.625rem;
   font-weight: 800;
   margin: 0 0 6px;
+  color: var(--ink);
 }
 
 .categoryDescription {
@@ -142,25 +146,38 @@
 .lessons {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 40px;
 }
 
 .lesson {
   scroll-margin-top: 24px;
+  padding: 24px 24px 22px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid color-mix(in srgb, var(--category-accent) 55%, var(--border));
+  border-radius: 10px;
 }
 
 .lessonHead {
   display: flex;
-  gap: 14px;
-  align-items: baseline;
+  gap: 16px;
+  align-items: center;
   margin-bottom: 14px;
 }
 
 .lessonNum {
-  font-family: var(--font-mono);
-  font-size: 0.9375rem;
-  color: var(--accent);
   flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--category-accent);
 }
 
 .lessonTitle {
