@@ -2,13 +2,17 @@ import Link from "next/link";
 import { LESSON_CATEGORIES, type LessonSection } from "../../lib/lessons";
 import {
   FairValueGapDiagram,
+  JudasSwingDiagram,
   KillzonesDiagram,
   LiquidityGrabDiagram,
   LongVsShortDiagram,
   MarginLeverageDiagram,
   MarketStructureDiagram,
   OrderBlockDiagram,
+  PowerOfThreeDiagram,
   PremiumDiscountDiagram,
+  SilverBulletDiagram,
+  TurtleSoupDiagram,
 } from "../../components/learn/diagrams";
 import styles from "./page.module.css";
 
@@ -21,6 +25,10 @@ const DIAGRAM_BY_LESSON: Record<string, React.ComponentType> = {
   "fair-value-gaps": FairValueGapDiagram,
   "premium-discount": PremiumDiscountDiagram,
   killzones: KillzonesDiagram,
+  "power-of-three": PowerOfThreeDiagram,
+  "judas-swing": JudasSwingDiagram,
+  "silver-bullet": SilverBulletDiagram,
+  "turtle-soup": TurtleSoupDiagram,
 };
 
 function LessonBlock({ lesson, num }: { lesson: LessonSection; num: string }) {

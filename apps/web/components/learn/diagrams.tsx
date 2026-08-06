@@ -334,6 +334,195 @@ export function PremiumDiscountDiagram() {
   );
 }
 
+export function PowerOfThreeDiagram() {
+  const ink = "var(--ink-dim)";
+  const loss = "var(--loss)";
+  const border = "var(--border)";
+  return (
+    <Figure
+      viewBox="0 0 480 215"
+      ariaLabel="A tight consolidation range, followed by a brief spike above it that reverses, followed by a sustained move in the opposite direction of the spike."
+      caption="Power of Three: accumulation (chop), manipulation (fake breakout / liquidity grab), distribution (the real, sustained move)."
+    >
+      <ArrowDefs id="p3-arrow" color={loss} />
+      <rect x="20" y="95" width="150" height="40" fill="var(--panel-2)" stroke={border} />
+      <text x="95" y="80" textAnchor="middle" fill={ink} className={styles.labelStrong}>
+        Accumulation
+      </text>
+      <polyline
+        points="30,120 55,100 80,125 105,105 135,118 160,108"
+        fill="none"
+        stroke={ink}
+        strokeWidth="1.5"
+      />
+
+      <line x1="185" y1="85" x2="185" y2="195" stroke={border} strokeDasharray="3 3" strokeWidth="1" />
+
+      <polyline points="160,108 205,60 225,120" fill="none" stroke={loss} strokeWidth="2" />
+      <circle cx="205" cy="60" r="3.5" fill={loss} />
+      <text x="205" y="48" textAnchor="middle" fill={loss} className={styles.labelStrong}>
+        Manipulation
+      </text>
+
+      <line x1="235" y1="85" x2="235" y2="195" stroke={border} strokeDasharray="3 3" strokeWidth="1" />
+
+      <polyline
+        points="225,120 270,145 315,158 360,170 405,180 450,190"
+        fill="none"
+        stroke={loss}
+        strokeWidth="2"
+        markerEnd="url(#p3-arrow)"
+      />
+      <text x="340" y="205" textAnchor="middle" fill={loss} className={styles.labelStrong}>
+        Distribution
+      </text>
+    </Figure>
+  );
+}
+
+export function JudasSwingDiagram() {
+  const ink = "var(--ink-dim)";
+  const accent = "var(--accent)";
+  const accent2 = "var(--accent-2)";
+  const loss = "var(--loss)";
+  return (
+    <Figure
+      viewBox="0 0 460 210"
+      ariaLabel="Price makes a brief move upward immediately after the session open, then reverses sharply downward for the rest of the session."
+      caption="The Judas Swing: the first move after the session open often lies about the day's real direction, then reverses hard."
+    >
+      <ArrowDefs id="judas-arrow" color={loss} />
+      <line x1="150" y1="20" x2="150" y2="180" stroke={accent} strokeDasharray="3 3" strokeWidth="1" />
+      <text x="150" y="15" textAnchor="middle" fill={accent} className={styles.labelStrong}>
+        Session open
+      </text>
+
+      <polyline points="20,140 80,138 120,142 150,140" fill="none" stroke={ink} strokeWidth="1.5" />
+      <circle cx="150" cy="140" r="3" fill={ink} />
+
+      <polyline points="150,140 190,100 220,80" fill="none" stroke={accent2} strokeWidth="2" />
+      <circle cx="220" cy="80" r="3.5" fill={accent2} />
+      <text x="220" y="68" textAnchor="middle" fill={accent2} className={styles.labelStrong}>
+        Judas swing (fake)
+      </text>
+
+      <polyline
+        points="220,80 260,120 300,150 350,175 410,185"
+        fill="none"
+        stroke={loss}
+        strokeWidth="2"
+        markerEnd="url(#judas-arrow)"
+      />
+      <text x="350" y="200" textAnchor="middle" fill={loss} className={styles.labelStrong}>
+        Real direction
+      </text>
+    </Figure>
+  );
+}
+
+export function SilverBulletDiagram() {
+  const ink = "var(--ink-dim)";
+  const accent2 = "var(--accent-2)";
+  const gain = "var(--gain)";
+  const loss = "var(--loss)";
+  return (
+    <Figure
+      viewBox="0 0 460 200"
+      ariaLabel="Inside a narrow one-hour window, price sweeps below a prior low, forms a fair value gap on the reversal, and is entered targeting a move higher."
+      caption="Silver Bullet: inside one narrow window, wait for a liquidity sweep immediately followed by a reversal FVG — that's the entry."
+    >
+      <ArrowDefs id="sb-arrow" color={gain} />
+      <rect x="140" y="20" width="170" height="160" fill={accent2} opacity="0.08" stroke={accent2} strokeDasharray="3 3" />
+      <text x="225" y="15" textAnchor="middle" fill={accent2} className={styles.labelStrong}>
+        Silver Bullet (10–11am NY)
+      </text>
+
+      <line x1="20" y1="130" x2="320" y2="130" stroke={loss} strokeDasharray="4 3" strokeWidth="1.5" />
+      <text x="20" y="120" fill={loss} className={styles.label}>
+        Prior low (liquidity)
+      </text>
+
+      <polyline points="20,80 60,95 100,110 140,120" fill="none" stroke={ink} strokeWidth="1.5" />
+
+      <polyline points="140,120 165,150 185,122" fill="none" stroke={loss} strokeWidth="2" />
+      <circle cx="165" cy="150" r="3.5" fill={loss} />
+      <text x="165" y="165" textAnchor="middle" fill={loss} className={styles.label}>
+        Sweep
+      </text>
+
+      <rect x="190" y="95" width="30" height="25" fill={accent2} opacity="0.3" />
+      <text x="205" y="90" textAnchor="middle" fill={accent2} className={styles.label}>
+        FVG
+      </text>
+
+      <polyline points="205,107 250,70 300,45 340,30" fill="none" stroke={gain} strokeWidth="2" markerEnd="url(#sb-arrow)" />
+      <text x="340" y="45" textAnchor="middle" fill={gain} className={styles.labelStrong}>
+        Target
+      </text>
+    </Figure>
+  );
+}
+
+export function TurtleSoupDiagram() {
+  const ink = "var(--ink-dim)";
+  const inkFaint = "var(--ink-faint)";
+  const accent = "var(--accent)";
+  const loss = "var(--loss)";
+  const border = "var(--border)";
+  return (
+    <Figure
+      viewBox="0 0 460 205"
+      ariaLabel="Price briefly breaks above the prior day's high, then reverses sharply back below it, fading the breakout."
+      caption="Turtle Soup: a false breakout of the prior day's or week's high, faded back the other way — not chased as a real breakout."
+    >
+      <line x1="20" y1="90" x2="430" y2="90" stroke={accent} strokeDasharray="4 3" strokeWidth="1.5" />
+      <text x="30" y="80" fill={accent} className={styles.labelStrong}>
+        Prior day high
+      </text>
+
+      <g opacity="0.5">
+        {[
+          { x: 50, top: 115, bot: 135 },
+          { x: 90, top: 105, bot: 125 },
+          { x: 130, top: 112, bot: 130 },
+          { x: 170, top: 100, bot: 120 },
+        ].map((c, i) => (
+          <g key={i}>
+            <line x1={c.x} x2={c.x} y1={c.top - 6} y2={c.bot + 6} stroke={ink} strokeWidth="1" />
+            <rect x={c.x - 6} width="12" y={c.top} height={c.bot - c.top} fill="var(--panel-2)" stroke={ink} />
+          </g>
+        ))}
+      </g>
+
+      <line x1="210" y1="20" x2="210" y2="180" stroke={border} strokeDasharray="3 3" strokeWidth="1" />
+      <text x="210" y="15" textAnchor="middle" fill={inkFaint} className={styles.label}>
+        New session
+      </text>
+
+      {[
+        { x: 240, top: 128, bot: 148 },
+        { x: 275, top: 118, bot: 138 },
+      ].map((c, i) => (
+        <g key={i}>
+          <line x1={c.x} x2={c.x} y1={c.top - 6} y2={c.bot + 6} stroke={ink} strokeWidth="1" />
+          <rect x={c.x - 6} width="12" y={c.top} height={c.bot - c.top} fill="var(--panel-2)" stroke={ink} />
+        </g>
+      ))}
+
+      <line x1="310" y1="55" x2="310" y2="95" stroke={loss} strokeWidth="1.5" />
+      <rect x="304" y="70" width="12" height="25" fill={loss} />
+      <text x="322" y="48" fill={loss} className={styles.labelStrong}>
+        False breakout
+      </text>
+
+      <polyline points="310,95 350,125 390,150 425,170" fill="none" stroke={loss} strokeWidth="2" />
+      <text x="370" y="192" textAnchor="middle" fill={loss} className={styles.labelStrong}>
+        Fades back below the high
+      </text>
+    </Figure>
+  );
+}
+
 export function KillzonesDiagram() {
   const ink = "var(--ink-faint)";
   const zones = [

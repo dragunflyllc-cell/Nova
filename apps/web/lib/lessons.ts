@@ -187,6 +187,51 @@ export const LESSON_CATEGORIES: LessonCategory[] = [
           "Time windows are always in the trader's chosen time zone and shift with daylight saving changes, so treat the exact clock times as approximate, not fixed universal truths.",
         ],
       },
+      {
+        id: "ict-models",
+        title: "ICT models",
+        summary: "Named setups that combine the concepts above into one playbook.",
+        paragraphs: [
+          "The concepts covered so far — structure, liquidity, order blocks, fair value gaps, premium/discount, killzones — are the building blocks. A \"model\" is a specific, named recipe that combines several of them into one repeatable setup with its own entry logic, so a trader isn't starting from a blank chart every session.",
+          "The four below are among the most commonly referenced in the ICT community. Like everything else on this page, they're presented as terminology and mechanism to understand, not as a guaranteed edge — the same validate-it-yourself caveat from the intro lesson applies here even more, since a named model can feel more authoritative than it actually is.",
+        ],
+      },
+      {
+        id: "power-of-three",
+        title: "Power of Three (AMD)",
+        summary: "Accumulation, Manipulation, Distribution.",
+        paragraphs: [
+          "The Power of Three model describes a full session (or a smaller time window) as three phases. Accumulation is a tight consolidation range where price chops sideways, building up resting orders on both sides. Manipulation is a sharp, brief push outside that range — a liquidity grab — that traps traders who entered on the breakout. Distribution is the real, sustained move that follows, in the opposite direction of the manipulation wick.",
+          "The practical read: don't trade the accumulation range itself, and don't chase the manipulation wick as a breakout — it's framed as the trap, not the trend. The distribution phase, after the grab, is the part the model is built to catch.",
+        ],
+      },
+      {
+        id: "judas-swing",
+        title: "Judas Swing",
+        summary: "A session-open fakeout named for the betrayal.",
+        paragraphs: [
+          "The Judas Swing is a specific case of the manipulation phase, anchored to a session open — commonly the London or New York open. Price makes an initial move in one direction right after the open, drawing in traders who assume that's the day's direction, then reverses sharply and runs the other way for the rest of the session.",
+          "It's named for the betrayal: the initial move \"lies\" about the day's real direction. ICT traders watch the first swing after a session open with more suspicion than confirmation for exactly this reason.",
+        ],
+      },
+      {
+        id: "silver-bullet",
+        title: "Silver Bullet",
+        summary: "A narrow one-hour window looking for one specific setup.",
+        paragraphs: [
+          "The Silver Bullet narrows the killzone concept down further: a specific one-hour window (commonly 10–11am New York time, with other variants for London and the PM session) during which traders using this model look for exactly one setup — a liquidity sweep immediately followed by a fair value gap forming in the reversal direction, used as the entry.",
+          "The appeal of the model is its narrowness: instead of watching the whole session, a trader following it only engages during that one window, and only takes the trade if both pieces — the sweep and the resulting FVG — actually show up.",
+        ],
+      },
+      {
+        id: "turtle-soup",
+        title: "Turtle Soup",
+        summary: "A false breakout of a prior day's or week's high or low.",
+        paragraphs: [
+          "Turtle Soup is a liquidity grab applied specifically to a prior significant level — the previous day's or week's high or low — rather than an intraday swing point. Price briefly breaks that level, triggering the stops and breakout entries resting there, then reverses sharply back inside the prior range.",
+          "The name is a deliberate jab at turtle-trading-style breakout systems: where a breakout trader buys the new high, Turtle Soup is the bet that the breakout is false and fades it back the other way. It's the same false-breakout mechanism as a liquidity grab, just applied to a higher-timeframe reference level instead of the last few candles.",
+        ],
+      },
     ],
   },
 ];

@@ -367,7 +367,7 @@
   </div><div class="tocCategory">
     <p class="tocCategoryTitle" style="color:var(--accent-2)">ICT Concepts</p>
     <div class="tocCategoryLinks">
-      <a href="#what-is-ict" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">01</span>What is ICT?</a><a href="#market-structure" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">02</span>Market structure</a><a href="#liquidity" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">03</span>Liquidity and liquidity grabs</a><a href="#order-blocks" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">04</span>Order blocks</a><a href="#fair-value-gaps" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">05</span>Fair value gaps (imbalances)</a><a href="#premium-discount" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">06</span>Premium, discount, and optimal trade entry</a><a href="#killzones" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">07</span>Killzones</a>
+      <a href="#what-is-ict" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">01</span>What is ICT?</a><a href="#market-structure" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">02</span>Market structure</a><a href="#liquidity" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">03</span>Liquidity and liquidity grabs</a><a href="#order-blocks" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">04</span>Order blocks</a><a href="#fair-value-gaps" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">05</span>Fair value gaps (imbalances)</a><a href="#premium-discount" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">06</span>Premium, discount, and optimal trade entry</a><a href="#killzones" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">07</span>Killzones</a><a href="#ict-models" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">08</span>ICT models</a><a href="#power-of-three" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">09</span>Power of Three (AMD)</a><a href="#judas-swing" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">10</span>Judas Swing</a><a href="#silver-bullet" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">11</span>Silver Bullet</a><a href="#turtle-soup" class="tocLink"><span class="tocNum" style="color:var(--accent-2)">12</span>Turtle Soup</a>
     </div>
   </div></nav>
 
@@ -602,6 +602,102 @@
     <p class="lessonBody">Killzones are specific time windows — the London Open, the New York AM session, the London Close, and the Asian range are the most commonly referenced — during which ICT theory expects the highest-probability institutional moves to happen. Traders following this framework often narrow their focus to these windows rather than watching the chart all day.</p>
 <p class="lessonBody">Time windows are always in the trader's chosen time zone and shift with daylight saving changes, so treat the exact clock times as approximate, not fixed universal truths.</p>
     <figure class="figure"><svg class="svg" viewBox="0 0 480 150" role="img" aria-label="Four labeled windows along a 24-hour timeline: the Asian range, the London open, the New York AM session, and the London close."><line x1="20" y1="100" x2="460" y2="100" stroke="var(--ink-faint)" stroke-width="1.5"/><rect x="30" y="80" width="90" height="20" fill="var(--tier-common)" opacity="0.75"/><text x="75" y="70" text-anchor="middle" fill="var(--ink-dim)" class="label">Asian range</text><rect x="150" y="80" width="60" height="20" fill="var(--accent)" opacity="0.75"/><text x="180" y="70" text-anchor="middle" fill="var(--ink-dim)" class="label">London open</text><rect x="240" y="80" width="90" height="20" fill="var(--accent-2)" opacity="0.75"/><text x="285" y="70" text-anchor="middle" fill="var(--ink-dim)" class="label">New York AM</text><rect x="360" y="80" width="70" height="20" fill="#ec4899" opacity="0.75"/><text x="395" y="70" text-anchor="middle" fill="var(--ink-dim)" class="label">London close</text></svg><figcaption class="caption">Killzones are specific windows of the day, not the whole session — times are approximate and shift with daylight saving.</figcaption></figure>
+    
+    
+  </section>
+<section id="ict-models" class="lesson" style="--category-accent:var(--accent-2)">
+    <div class="lessonHead">
+      <span class="lessonNum">08</span>
+      <div><h3 class="lessonTitle">ICT models</h3><p class="lessonSummary">Named setups that combine the concepts above into one playbook.</p></div>
+    </div>
+    <p class="lessonBody">The concepts covered so far — structure, liquidity, order blocks, fair value gaps, premium/discount, killzones — are the building blocks. A "model" is a specific, named recipe that combines several of them into one repeatable setup with its own entry logic, so a trader isn't starting from a blank chart every session.</p>
+<p class="lessonBody">The four below are among the most commonly referenced in the ICT community. Like everything else on this page, they're presented as terminology and mechanism to understand, not as a guaranteed edge — the same validate-it-yourself caveat from the intro lesson applies here even more, since a named model can feel more authoritative than it actually is.</p>
+    
+    
+    
+  </section>
+<section id="power-of-three" class="lesson" style="--category-accent:var(--accent-2)">
+    <div class="lessonHead">
+      <span class="lessonNum">09</span>
+      <div><h3 class="lessonTitle">Power of Three (AMD)</h3><p class="lessonSummary">Accumulation, Manipulation, Distribution.</p></div>
+    </div>
+    <p class="lessonBody">The Power of Three model describes a full session (or a smaller time window) as three phases. Accumulation is a tight consolidation range where price chops sideways, building up resting orders on both sides. Manipulation is a sharp, brief push outside that range — a liquidity grab — that traps traders who entered on the breakout. Distribution is the real, sustained move that follows, in the opposite direction of the manipulation wick.</p>
+<p class="lessonBody">The practical read: don't trade the accumulation range itself, and don't chase the manipulation wick as a breakout — it's framed as the trap, not the trend. The distribution phase, after the grab, is the part the model is built to catch.</p>
+    <figure class="figure"><svg class="svg" viewBox="0 0 480 215" role="img" aria-label="A tight consolidation range, followed by a brief spike above it that reverses, followed by a sustained move in the opposite direction of the spike."><defs><marker id="p3-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--loss)"/></marker></defs>
+      <rect x="20" y="95" width="150" height="40" fill="var(--panel-2)" stroke="var(--border)"/>
+      <text x="95" y="80" text-anchor="middle" fill="var(--ink-dim)" class="labelStrong">Accumulation</text>
+      <polyline points="30,120 55,100 80,125 105,105 135,118 160,108" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+      <line x1="185" y1="85" x2="185" y2="195" stroke="var(--border)" stroke-dasharray="3 3" stroke-width="1"/>
+      <polyline points="160,108 205,60 225,120" fill="none" stroke="var(--loss)" stroke-width="2"/>
+      <circle cx="205" cy="60" r="3.5" fill="var(--loss)"/>
+      <text x="205" y="48" text-anchor="middle" fill="var(--loss)" class="labelStrong">Manipulation</text>
+      <line x1="235" y1="85" x2="235" y2="195" stroke="var(--border)" stroke-dasharray="3 3" stroke-width="1"/>
+      <polyline points="225,120 270,145 315,158 360,170 405,180 450,190" fill="none" stroke="var(--loss)" stroke-width="2" marker-end="url(#p3-arrow)"/>
+      <text x="340" y="205" text-anchor="middle" fill="var(--loss)" class="labelStrong">Distribution</text></svg><figcaption class="caption">Power of Three: accumulation (chop), manipulation (fake breakout / liquidity grab), distribution (the real, sustained move).</figcaption></figure>
+    
+    
+  </section>
+<section id="judas-swing" class="lesson" style="--category-accent:var(--accent-2)">
+    <div class="lessonHead">
+      <span class="lessonNum">10</span>
+      <div><h3 class="lessonTitle">Judas Swing</h3><p class="lessonSummary">A session-open fakeout named for the betrayal.</p></div>
+    </div>
+    <p class="lessonBody">The Judas Swing is a specific case of the manipulation phase, anchored to a session open — commonly the London or New York open. Price makes an initial move in one direction right after the open, drawing in traders who assume that's the day's direction, then reverses sharply and runs the other way for the rest of the session.</p>
+<p class="lessonBody">It's named for the betrayal: the initial move "lies" about the day's real direction. ICT traders watch the first swing after a session open with more suspicion than confirmation for exactly this reason.</p>
+    <figure class="figure"><svg class="svg" viewBox="0 0 460 210" role="img" aria-label="Price makes a brief move upward immediately after the session open, then reverses sharply downward for the rest of the session."><defs><marker id="judas-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--loss)"/></marker></defs>
+      <line x1="150" y1="20" x2="150" y2="180" stroke="var(--accent)" stroke-dasharray="3 3" stroke-width="1"/>
+      <text x="150" y="15" text-anchor="middle" fill="var(--accent)" class="labelStrong">Session open</text>
+      <polyline points="20,140 80,138 120,142 150,140" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+      <circle cx="150" cy="140" r="3" fill="var(--ink-dim)"/>
+      <polyline points="150,140 190,100 220,80" fill="none" stroke="var(--accent-2)" stroke-width="2"/>
+      <circle cx="220" cy="80" r="3.5" fill="var(--accent-2)"/>
+      <text x="220" y="68" text-anchor="middle" fill="var(--accent-2)" class="labelStrong">Judas swing (fake)</text>
+      <polyline points="220,80 260,120 300,150 350,175 410,185" fill="none" stroke="var(--loss)" stroke-width="2" marker-end="url(#judas-arrow)"/>
+      <text x="350" y="200" text-anchor="middle" fill="var(--loss)" class="labelStrong">Real direction</text></svg><figcaption class="caption">The Judas Swing: the first move after the session open often lies about the day's real direction, then reverses hard.</figcaption></figure>
+    
+    
+  </section>
+<section id="silver-bullet" class="lesson" style="--category-accent:var(--accent-2)">
+    <div class="lessonHead">
+      <span class="lessonNum">11</span>
+      <div><h3 class="lessonTitle">Silver Bullet</h3><p class="lessonSummary">A narrow one-hour window looking for one specific setup.</p></div>
+    </div>
+    <p class="lessonBody">The Silver Bullet narrows the killzone concept down further: a specific one-hour window (commonly 10–11am New York time, with other variants for London and the PM session) during which traders using this model look for exactly one setup — a liquidity sweep immediately followed by a fair value gap forming in the reversal direction, used as the entry.</p>
+<p class="lessonBody">The appeal of the model is its narrowness: instead of watching the whole session, a trader following it only engages during that one window, and only takes the trade if both pieces — the sweep and the resulting FVG — actually show up.</p>
+    <figure class="figure"><svg class="svg" viewBox="0 0 460 200" role="img" aria-label="Inside a narrow one-hour window, price sweeps below a prior low, forms a fair value gap on the reversal, and is entered targeting a move higher."><defs><marker id="sb-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--gain)"/></marker></defs>
+      <rect x="140" y="20" width="170" height="160" fill="var(--accent-2)" opacity="0.08" stroke="var(--accent-2)" stroke-dasharray="3 3"/>
+      <text x="225" y="15" text-anchor="middle" fill="var(--accent-2)" class="labelStrong">Silver Bullet (10–11am NY)</text>
+      <line x1="20" y1="130" x2="320" y2="130" stroke="var(--loss)" stroke-dasharray="4 3" stroke-width="1.5"/>
+      <text x="20" y="120" fill="var(--loss)" class="label">Prior low (liquidity)</text>
+      <polyline points="20,80 60,95 100,110 140,120" fill="none" stroke="var(--ink-dim)" stroke-width="1.5"/>
+      <polyline points="140,120 165,150 185,122" fill="none" stroke="var(--loss)" stroke-width="2"/>
+      <circle cx="165" cy="150" r="3.5" fill="var(--loss)"/>
+      <text x="165" y="165" text-anchor="middle" fill="var(--loss)" class="label">Sweep</text>
+      <rect x="190" y="95" width="30" height="25" fill="var(--accent-2)" opacity="0.3"/>
+      <text x="205" y="90" text-anchor="middle" fill="var(--accent-2)" class="label">FVG</text>
+      <polyline points="205,107 250,70 300,45 340,30" fill="none" stroke="var(--gain)" stroke-width="2" marker-end="url(#sb-arrow)"/>
+      <text x="340" y="45" text-anchor="middle" fill="var(--gain)" class="labelStrong">Target</text></svg><figcaption class="caption">Silver Bullet: inside one narrow window, wait for a liquidity sweep immediately followed by a reversal FVG — that's the entry.</figcaption></figure>
+    
+    
+  </section>
+<section id="turtle-soup" class="lesson" style="--category-accent:var(--accent-2)">
+    <div class="lessonHead">
+      <span class="lessonNum">12</span>
+      <div><h3 class="lessonTitle">Turtle Soup</h3><p class="lessonSummary">A false breakout of a prior day's or week's high or low.</p></div>
+    </div>
+    <p class="lessonBody">Turtle Soup is a liquidity grab applied specifically to a prior significant level — the previous day's or week's high or low — rather than an intraday swing point. Price briefly breaks that level, triggering the stops and breakout entries resting there, then reverses sharply back inside the prior range.</p>
+<p class="lessonBody">The name is a deliberate jab at turtle-trading-style breakout systems: where a breakout trader buys the new high, Turtle Soup is the bet that the breakout is false and fades it back the other way. It's the same false-breakout mechanism as a liquidity grab, just applied to a higher-timeframe reference level instead of the last few candles.</p>
+    <figure class="figure"><svg class="svg" viewBox="0 0 460 205" role="img" aria-label="Price briefly breaks above the prior day's high, then reverses sharply back below it, fading the breakout."><line x1="20" y1="90" x2="430" y2="90" stroke="var(--accent)" stroke-dasharray="4 3" stroke-width="1.5"/>
+      <text x="30" y="80" fill="var(--accent)" class="labelStrong">Prior day high</text>
+      <g opacity="0.5"><line x1="50" x2="50" y1="109" y2="141" stroke="var(--ink-dim)" stroke-width="1"/><rect x="44" width="12" y="115" height="20" fill="var(--panel-2)" stroke="var(--ink-dim)"/><line x1="90" x2="90" y1="99" y2="131" stroke="var(--ink-dim)" stroke-width="1"/><rect x="84" width="12" y="105" height="20" fill="var(--panel-2)" stroke="var(--ink-dim)"/><line x1="130" x2="130" y1="106" y2="136" stroke="var(--ink-dim)" stroke-width="1"/><rect x="124" width="12" y="112" height="18" fill="var(--panel-2)" stroke="var(--ink-dim)"/><line x1="170" x2="170" y1="94" y2="126" stroke="var(--ink-dim)" stroke-width="1"/><rect x="164" width="12" y="100" height="20" fill="var(--panel-2)" stroke="var(--ink-dim)"/></g>
+      <line x1="210" y1="20" x2="210" y2="180" stroke="var(--border)" stroke-dasharray="3 3" stroke-width="1"/>
+      <text x="210" y="15" text-anchor="middle" fill="var(--ink-faint)" class="label">New session</text>
+      <line x1="240" x2="240" y1="122" y2="154" stroke="var(--ink-dim)" stroke-width="1"/><rect x="234" width="12" y="128" height="20" fill="var(--panel-2)" stroke="var(--ink-dim)"/><line x1="275" x2="275" y1="112" y2="144" stroke="var(--ink-dim)" stroke-width="1"/><rect x="269" width="12" y="118" height="20" fill="var(--panel-2)" stroke="var(--ink-dim)"/>
+      <line x1="310" y1="55" x2="310" y2="95" stroke="var(--loss)" stroke-width="1.5"/>
+      <rect x="304" y="70" width="12" height="25" fill="var(--loss)"/>
+      <text x="322" y="48" fill="var(--loss)" class="labelStrong">False breakout</text>
+      <polyline points="310,95 350,125 390,150 425,170" fill="none" stroke="var(--loss)" stroke-width="2"/>
+      <text x="370" y="192" text-anchor="middle" fill="var(--loss)" class="labelStrong">Fades back below the high</text></svg><figcaption class="caption">Turtle Soup: a false breakout of the prior day's or week's high, faded back the other way — not chased as a real breakout.</figcaption></figure>
     
     
   </section>
