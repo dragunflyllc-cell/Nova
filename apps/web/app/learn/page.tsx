@@ -151,8 +151,13 @@ export default function LearnPage() {
 
       <footer className={styles.footer}>
         <p>
-          Ready to put this into practice? <Link href="/register">Create a free account</Link> and set your own
-          trading rules in the Trading Log — Nova checks them against your real fills, not your intentions.
+          Want to test the read before you risk real money on it? Try <Link href="/practice">Chart Scenarios</Link> —
+          a quiz on realistic setups: would you buy or sell, and where's your entry, stop, and target.
+        </p>
+        <p>
+          Ready to put this into practice on your own trading? <Link href="/register">Create a free account</Link>{" "}
+          and set your own trading rules in the Trading Log — Nova checks them against your real fills, not your
+          intentions.
         </p>
       </footer>
     </main>
