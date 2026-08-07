@@ -44,6 +44,13 @@ interface SyncResult {
   xpFromBehavior?: number;
 }
 
+interface ProjectXAccountInfo {
+  id: number;
+  name: string;
+  balance: number;
+  simulated: boolean;
+}
+
 const RULE_TYPE_LABEL: Record<RuleType, string> = {
   MAX_TRADES_PER_DAY: "Max trades per day",
   MIN_COOLDOWN_AFTER_LOSS_MINUTES: "Minimum cooldown after a loss (minutes)",
@@ -82,6 +89,13 @@ export function TradingLog() {
   const [ruleType, setRuleType] = useState<RuleType>("MAX_TRADES_PER_DAY");
   const [ruleParam, setRuleParam] = useState({ a: "3", b: "16" });
   const [addingRule, setAddingRule] = useState(false);
+
+  const [pxForm, setPxForm] = useState({ username: "", apiKey: "", accountName: "" });
+  const [pxConnecting, setPxConnecting] = useState(false);
+  const [pxAccount, setPxAccount] = useState<ProjectXAccountInfo | null>(null);
+  const [pxSyncing, setPxSyncing] = useState(false);
+  const [pxSyncResult, setPxSyncResult] = useState<{ fetched: number; stored: number } | null>(null);
+  const [pxError, setPxError] = useState("");
 
   const load = useCallback(async () => {
     const [fillsRes, rulesRes, questsRes] = await Promise.all([
@@ -173,6 +187,51 @@ export function TradingLog() {
     await load();
   }
 
+  async function handleConnectProjectX(e: React.FormEvent) {
+    e.preventDefault();
+    setPxError("");
+    setPxConnecting(true);
+    try {
+      const res = await apiFetch("/me/brokers/projectx/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: pxForm.username,
+          apiKey: pxForm.apiKey,
+          accountName: pxForm.accountName || undefined,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.error ?? "Couldn't connect that ProjectX account.");
+      }
+      setPxAccount(body.account);
+    } catch (err) {
+      setPxError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setPxConnecting(false);
+    }
+  }
+
+  async function handleSyncProjectX() {
+    setPxError("");
+    setPxSyncing(true);
+    setPxSyncResult(null);
+    try {
+      const res = await apiFetch("/me/brokers/projectx/sync", { method: "POST" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.error ?? "ProjectX sync failed.");
+      }
+      setPxSyncResult(body);
+      await load();
+    } catch (err) {
+      setPxError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setPxSyncing(false);
+    }
+  }
+
   async function handleSync() {
     setError("");
     setSyncing(true);
@@ -209,6 +268,67 @@ export function TradingLog() {
       </p>
 
       {error ? <p style={{ color: "var(--loss)", fontSize: "0.8125rem" }}>{error}</p> : null}
+
+      <div className={styles.card} style={{ marginBottom: 24 }}>
+        <h3 className={styles.cardTitle}>Connect ProjectX / TopstepX</h3>
+        <p className={styles.cardSub}>
+          Self-serve — buy the API add-on in your ProjectX/TopstepX account settings, paste the username and API key
+          it gives you below. No approval wait, no partner program.
+        </p>
+        <form className={styles.form} onSubmit={handleConnectProjectX}>
+          <div className={styles.field}>
+            <label htmlFor="pxUsername">Username</label>
+            <input
+              id="pxUsername"
+              value={pxForm.username}
+              onChange={(e) => setPxForm({ ...pxForm, username: e.target.value })}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="pxApiKey">API key</label>
+            <input
+              id="pxApiKey"
+              type="password"
+              value={pxForm.apiKey}
+              onChange={(e) => setPxForm({ ...pxForm, apiKey: e.target.value })}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="pxAccountName">Account (optional)</label>
+            <input
+              id="pxAccountName"
+              placeholder="defaults to first active account"
+              value={pxForm.accountName}
+              onChange={(e) => setPxForm({ ...pxForm, accountName: e.target.value })}
+            />
+          </div>
+          <button type="submit" className={styles.submitBtn} disabled={pxConnecting}>
+            {pxConnecting ? "Connecting…" : "Connect"}
+          </button>
+        </form>
+
+        {pxError ? <p style={{ color: "var(--loss)", fontSize: "0.8125rem", marginTop: 8 }}>{pxError}</p> : null}
+
+        {pxAccount ? (
+          <div className={styles.syncResult}>
+            <p>
+              Connected to <strong>{pxAccount.name}</strong> ({pxAccount.simulated ? "sim" : "live"}) — balance $
+              {pxAccount.balance.toLocaleString()}
+            </p>
+            <button type="button" className={styles.syncBtn} onClick={handleSyncProjectX} disabled={pxSyncing}>
+              {pxSyncing ? "Syncing…" : "Sync ProjectX fills"}
+            </button>
+            {pxSyncResult ? (
+              <p style={{ marginTop: 8 }}>
+                Fetched {pxSyncResult.fetched} trade{pxSyncResult.fetched === 1 ? "" : "s"} from ProjectX, stored{" "}
+                {pxSyncResult.stored} new fill{pxSyncResult.stored === 1 ? "" : "s"}.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
       <div className={styles.panelGrid}>
         <div className={styles.card}>

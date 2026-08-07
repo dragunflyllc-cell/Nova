@@ -74,13 +74,45 @@ this is user-facing.
 
 Nova is futures-focused, predominantly prop-firm traders. Rather than one
 broker-specific integration, `apps/api/src/brokers/types.ts` defines a
-`BrokerAdapter` interface every provider implements — Tradovate is the first,
+`BrokerAdapter` interface every provider implements. Tradovate was built
+first (OAuth-based cloud REST API), but real Tradovate credentials require
+Tradovate's Partner API approval — a business-development process with no
+SLA, which stalled without a response. **ProjectX (TopstepX's broker API)
+was built second specifically because it's genuinely self-serve**: a trader
+buys the "ProjectX API" add-on directly in their own account settings
+(~$14.50–29/month) and gets a username + API key immediately, no partner
+approval, no waiting on anyone. Nova itself needs no ProjectX-issued
+app-level credentials — each user brings their own key.
+
+- `apps/api/src/brokers/projectx.ts` — login (`POST /Auth/loginKey`),
+  account listing (`POST /Account/search`), and trade history
+  (`GET /trades/search`) against `https://api.topstepx.com/api`. Verified
+  against the real request/response shapes used by the open-source
+  `project-x-py` SDK (its source was read directly — ProjectX's own docs
+  site 403s automated fetches the same way Tradovate's did). Not yet run
+  against a live ProjectX API key — see the file header for exactly what's
+  verified vs. assumed.
+- `apps/api/src/routes/projectx.ts` — `POST /me/brokers/projectx/connect`
+  (takes `{ username, apiKey, accountName? }` directly in the request body,
+  not an OAuth redirect — there's no authorization screen to redirect to)
+  and `POST /me/brokers/projectx/sync` (re-authenticates on every call
+  rather than caching/refreshing a token, since sync is infrequent and this
+  avoids stale-token edge cases; fetches trades and stores new ones as
+  `BrokerFill` rows, same dedupe-by-`externalFillId` pattern as Tradovate).
+- `BrokerConnection` gained two nullable columns to support this:
+  `externalAccountId` (which ProjectX account fills are queried against)
+  and `externalUsername` (needed alongside the encrypted API key to
+  re-authenticate). Generic enough for a future Rithmic adapter too.
+- A "Connect ProjectX / TopstepX" form lives in the dashboard's Trading Log
+  panel (`apps/web/components/TradingLog.tsx`) — paste username + API key,
+  connect, then sync fetches trades on demand.
+
 Rithmic and NinjaTrader are the natural next adapters behind the same
-interface (see chat history / commit log for the comparison across
-Tradovate, Rithmic, ProjectX/TopstepX, NinjaTrader, and TradingView that led
-to Tradovate going first: it's the only one of these with a public
-OAuth-based cloud REST API built for third parties, with no vendor-approval
-process or per-user fee).
+`BrokerAdapter`-style interface — Rithmic has broader reach (most
+Rithmic-cleared prop firms, not just Topstep) but isn't self-serve in the
+same way: it requires contacting Rithmic for a dev kit, a conformance
+review, and ~$125/month in fees, so it's a slower parallel track rather
+than the immediate unblock ProjectX was.
 
 **Testing with real trade history today, without Tradovate approval**:
 `apps/api/src/routes/fills.ts` adds a `MANUAL` `BrokerProvider` — not a real
