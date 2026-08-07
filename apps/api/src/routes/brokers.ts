@@ -65,10 +65,16 @@ export async function brokerRoutes(app: FastifyInstance): Promise<void> {
         .send({ error: "Tradovate connection has expired — reconnect via /brokers/tradovate/connect" });
     }
 
-    const fills = await tradovateAdapter.fetchFills({
-      accessToken: decrypt(connection.accessToken),
-      expiresAt: connection.expiresAt,
+    // Access tokens live ~90 minutes with no separate refresh_token — renew
+    // opportunistically on every sync (using the still-valid current token)
+    // so a user who syncs periodically never has to reconnect.
+    const renewed = await tradovateAdapter.refreshTokens(decrypt(connection.accessToken));
+    await prisma.brokerConnection.update({
+      where: { id: connection.id },
+      data: { accessToken: encrypt(renewed.accessToken), expiresAt: renewed.expiresAt },
     });
+
+    const fills = await tradovateAdapter.fetchFills(renewed);
 
     const existing = await prisma.brokerFill.findMany({
       where: { connectionId: connection.id, externalFillId: { in: fills.map((f) => f.externalFillId) } },

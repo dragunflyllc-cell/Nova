@@ -5,9 +5,24 @@ import type { BrokerAdapter, BrokerTokens, NormalizedFill } from "./types.js";
 /**
  * Tradovate adapter.
  *
+ * Getting real client_id/client_secret no longer requires Tradovate's
+ * Partner program, which stalled with no response — Application Settings →
+ * API Access tab → "OAuth Registration" in any live, funded (>$1000)
+ * Tradovate account is self-serve: complete the self-attestation, sign the
+ * digital usage agreement, register an app (title + redirect URI), and
+ * Tradovate hands back a client_id/client_secret immediately. Third-party
+ * apps built this way (TradersPost, PickMyTrade, TradeSyncer) don't require
+ * their end users to buy the API Access add-on themselves — only the
+ * account used to register the OAuth app needs it. See
+ * docs/ARCHITECTURE.md#broker-integrations for the full writeup.
+ *
  * VERIFIED against Tradovate's own public repos/community docs at build time:
  *   - Authorization URL: https://trader.tradovate.com/oauth
  *   - Token exchange:    POST https://live.tradovateapi.com/auth/oauthtoken
+ *   - Token renewal:     POST {base}/auth/renewaccesstoken (Bearer: current,
+ *                         still-unexpired access token — not a refresh_token;
+ *                         Tradovate's OAuth exchange never issues one).
+ *                         Access tokens live ~90 minutes.
  *   - REST base:         https://{demo|live}.tradovateapi.com/v1
  *   - Fills:             GET {base}/fill/list  (Bearer auth)
  *
@@ -20,17 +35,24 @@ import type { BrokerAdapter, BrokerTokens, NormalizedFill } from "./types.js";
  *     `parseFill` validates strictly and throws with the raw payload
  *     attached on any mismatch, rather than silently coercing bad data —
  *     that error is the signal to come back and fix this mapping.
- *   - Whether the OAuth token response includes a usable refresh_token.
- *     `refreshTokens` throws until this is confirmed rather than guess.
+ *   - The exact renewaccesstoken response shape (assumed below: accessToken
+ *     + expirationTime, sourced from community-forum/wiki descriptions, not
+ *     primary docs).
  */
 
 const AUTHORIZE_URL = "https://trader.tradovate.com/oauth";
 const TOKEN_URL = "https://live.tradovateapi.com/auth/oauthtoken";
 const API_BASE =
   env.TRADOVATE_ENV === "live" ? "https://live.tradovateapi.com/v1" : "https://demo.tradovateapi.com/v1";
+const RENEW_URL = `${API_BASE}/auth/renewaccesstoken`;
 
 const tokenResponseSchema = z.union([
   z.object({ access_token: z.string(), expires_in: z.number() }),
+  z.object({ error: z.string(), error_description: z.string().optional() }),
+]);
+
+const renewResponseSchema = z.union([
+  z.object({ accessToken: z.string(), expirationTime: z.string() }),
   z.object({ error: z.string(), error_description: z.string().optional() }),
 ]);
 
@@ -118,13 +140,26 @@ export const tradovateAdapter: BrokerAdapter = {
     };
   },
 
-  async refreshTokens(): Promise<BrokerTokens> {
-    throw new Error(
-      "Tradovate token refresh is not implemented: the OAuth token exchange response format we could " +
-        "verify (community docs) only confirmed access_token + expires_in, with no confirmed refresh_token " +
-        "field. Confirm the real renewal mechanism against Tradovate's Partner API docs (requires partner " +
-        "access) before implementing this — do not guess.",
-    );
+  /**
+   * `refreshToken` here is semantically the current, still-unexpired access
+   * token — Tradovate's renewal mechanism reuses it as Bearer auth rather
+   * than issuing a separate refresh_token (see file header). Callers must
+   * renew before the ~90-minute access token actually expires; once it has,
+   * this call fails and the user has to reconnect via getAuthorizationUrl.
+   */
+  async refreshTokens(refreshToken: string): Promise<BrokerTokens> {
+    const response = await fetch(RENEW_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${refreshToken}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Tradovate token renewal failed: ${response.status} ${await response.text()}`);
+    }
+    const json = renewResponseSchema.parse(await response.json());
+    if ("error" in json) {
+      throw new Error(`Tradovate token renewal failed: ${json.error} — ${json.error_description ?? ""}`);
+    }
+    return { accessToken: json.accessToken, expiresAt: new Date(json.expirationTime) };
   },
 
   async fetchFills(tokens: BrokerTokens): Promise<NormalizedFill[]> {

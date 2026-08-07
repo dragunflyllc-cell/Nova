@@ -74,15 +74,41 @@ this is user-facing.
 
 Nova is futures-focused, predominantly prop-firm traders. Rather than one
 broker-specific integration, `apps/api/src/brokers/types.ts` defines a
-`BrokerAdapter` interface every provider implements. Tradovate was built
-first (OAuth-based cloud REST API), but real Tradovate credentials require
-Tradovate's Partner API approval — a business-development process with no
-SLA, which stalled without a response. **ProjectX (TopstepX's broker API)
-was built second specifically because it's genuinely self-serve**: a trader
+`BrokerAdapter` interface every provider implements.
+
+**Tradovate**: originally assumed to require Tradovate's Partner API
+approval — a business-development process with no SLA, which stalled
+without a response. That assumption was wrong. Tradovate's own community
+forum and official `tradovate/example-api-oauth` repo confirm a genuinely
+self-serve path that doesn't touch the partner program at all: in any
+live, funded (>$1000) Tradovate account, Application Settings → API Access
+tab → "OAuth Registration" — complete the self-attestation, sign the
+digital usage agreement, register an app (title + redirect URI), and
+Tradovate hands back a real `client_id`/`client_secret` immediately. Apps
+built this way (TradersPost, PickMyTrade, TradeSyncer are documented
+examples) don't require their end users to buy the API Access add-on
+themselves — only the one account used to register the OAuth app needs it.
+This is unverified against a real registration (no account has gone
+through the flow yet), so treat it as "very likely correct, confirm on
+first real attempt," not gospel — see `apps/api/src/brokers/tradovate.ts`'s
+header for exactly what's sourced from where. Once real
+`TRADOVATE_CLIENT_ID`/`TRADOVATE_CLIENT_SECRET`/`TRADOVATE_REDIRECT_URI`
+exist, the adapter needs no code changes — `TOKEN_URL`/`AUTHORIZE_URL`
+already match the official example app. Token renewal
+(`POST /auth/renewaccesstoken`) is now implemented too: Tradovate's OAuth
+exchange never issues a `refresh_token`, renewal instead reuses the
+current, still-unexpired access token as Bearer auth, called
+opportunistically on every `/me/brokers/tradovate/sync` — access tokens
+only live ~90 minutes, so a connection that isn't synced within that
+window requires a full reconnect.
+
+**ProjectX (TopstepX's broker API) was built as a second, parallel
+integration because it's self-serve in an even more direct way**: a trader
 buys the "ProjectX API" add-on directly in their own account settings
-(~$14.50–29/month) and gets a username + API key immediately, no partner
-approval, no waiting on anyone. Nova itself needs no ProjectX-issued
-app-level credentials — each user brings their own key.
+(~$14.50–29/month) and gets a username + API key immediately — no OAuth
+registration step, no digital agreement, no waiting on anyone. Nova itself
+needs no ProjectX-issued app-level credentials at all — each user brings
+their own key.
 
 - `apps/api/src/brokers/projectx.ts` — login (`POST /Auth/loginKey`),
   account listing (`POST /Account/search`), and trade history
@@ -123,8 +149,8 @@ downstream route that reads fills through a user's connections — trade
 matching, `sync-xp`, `/me/rules/check`, `/me/progression/sync` — picks up
 manually-entered fills with zero changes. This is the answer to "how do I
 test this with my own trading right now": log fills by hand (or from a
-broker statement) via the dashboard's Trading Log panel while Tradovate
-partner approval is pending.
+broker statement) via the dashboard's Trading Log panel before a real
+broker connection (Tradovate or ProjectX) is wired up.
 
 **Data model**: `BrokerConnection` (one user's OAuth link to one provider,
 tokens encrypted at rest via `apps/api/src/security/encryption.ts`) and
@@ -161,20 +187,22 @@ and community forum instead:
 - Verified: the OAuth authorize URL, the token-exchange endpoint and its
   request shape, the REST base URLs (demo/live), and the `fill/list` path.
 - Not verified: the exact field names on a `fill/list` response item, and
-  whether the token-exchange response includes a usable refresh token.
-  `parseFill` validates strictly and throws with the raw payload attached on
-  any mismatch instead of silently coercing bad data — that thrown error,
-  the first time this runs against a real account, is the signal to come
-  back and correct the field mapping. `refreshTokens` throws unconditionally
-  until this is confirmed, rather than guessing.
-- Nothing here has been exercised against Tradovate's real API — that
-  requires Tradovate Partner API credentials (`TRADOVATE_CLIENT_ID` /
-  `TRADOVATE_CLIENT_SECRET`), which means applying to their partner program.
-  That's a business step, not something available in this environment. What
-  *is* verified locally (see `apps/api/src/brokers/tradovate.test.ts` and
-  `apps/api/src/routes/brokers.ts` tested via curl): auth gating, the
-  authorize-URL construction, OAuth state-token CSRF protection, and the
-  fill-parsing validation logic against representative fixtures.
+  the exact `renewaccesstoken` response shape (sourced from community-forum
+  descriptions, not primary docs). `parseFill` validates strictly and
+  throws with the raw payload attached on any mismatch instead of silently
+  coercing bad data — that thrown error, the first time this runs against a
+  real account, is the signal to come back and correct the field mapping.
+- Nothing here has been exercised against Tradovate's real API yet — that
+  requires a real `TRADOVATE_CLIENT_ID`/`TRADOVATE_CLIENT_SECRET`, obtained
+  via the self-serve OAuth Registration flow described above (no partner
+  program needed — see the file header in
+  `apps/api/src/brokers/tradovate.ts` for the exact steps and sourcing).
+  That's still a real-world account action someone has to do, not something
+  available in this environment. What *is* verified locally (see
+  `apps/api/src/brokers/tradovate.test.ts` and `apps/api/src/routes/brokers.ts`
+  tested via curl): auth gating, the authorize-URL construction, OAuth
+  state-token CSRF protection, and the fill-parsing validation logic
+  against representative fixtures.
 
 ## Behavior-driven XP
 

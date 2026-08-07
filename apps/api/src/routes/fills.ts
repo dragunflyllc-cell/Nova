@@ -11,8 +11,8 @@ import { authenticate } from "../plugins/authenticate.js";
  * broker connections (trades/service.ts, sync-xp, /me/rules/check,
  * /me/progression/sync) picks these up automatically with zero changes.
  * This exists specifically so someone can test the whole pipeline against
- * their real trade history today, without waiting on Tradovate partner API
- * approval (see docs/ARCHITECTURE.md's broker-integrations section).
+ * their real trade history today, without needing a broker API connection
+ * set up first (see docs/ARCHITECTURE.md's broker-integrations section).
  */
 const fillSchema = z.object({
   contractSymbol: z.string().min(1),
