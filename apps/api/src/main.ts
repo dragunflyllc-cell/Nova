@@ -10,6 +10,7 @@ import { characterRoutes } from "./routes/characters.js";
 import { fillRoutes } from "./routes/fills.js";
 import { progressionRoutes } from "./routes/progression.js";
 import { projectXRoutes } from "./routes/projectx.js";
+import { rithmicRoutes } from "./routes/rithmic.js";
 import { ruleRoutes } from "./routes/rules.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
 
@@ -37,6 +38,7 @@ app.register(brokerRoutes);
 app.register(fillRoutes);
 app.register(progressionRoutes);
 app.register(projectXRoutes);
+app.register(rithmicRoutes);
 app.register(ruleRoutes);
 app.register(waitlistRoutes);
 

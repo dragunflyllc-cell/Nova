@@ -108,7 +108,13 @@ buys the "ProjectX API" add-on directly in their own account settings
 (~$14.50–29/month) and gets a username + API key immediately — no OAuth
 registration step, no digital agreement, no waiting on anyone. Nova itself
 needs no ProjectX-issued app-level credentials at all — each user brings
-their own key.
+their own key. Note: ProjectX went fully exclusive to Topstep at the end
+of February 2026 — every other prop firm that used to white-label it
+(Bulenox, Alpha Futures, TickTick, Tradeify, Lucid, Phidias, TradeDay)
+shut their ProjectX offerings down within weeks of that. Topstep is the
+only door to this platform now, which matters for anyone who can't get a
+Topstep account for any reason — Rithmic (below) is the fallback in that
+case, since it isn't tied to any single company.
 
 - `apps/api/src/brokers/projectx.ts` — login (`POST /Auth/loginKey`),
   account listing (`POST /Account/search`), and trade history
@@ -133,12 +139,54 @@ their own key.
   panel (`apps/web/components/TradingLog.tsx`) — paste username + API key,
   connect, then sync fetches trades on demand.
 
-Rithmic and NinjaTrader are the natural next adapters behind the same
-`BrokerAdapter`-style interface — Rithmic has broader reach (most
-Rithmic-cleared prop firms, not just Topstep) but isn't self-serve in the
-same way: it requires contacting Rithmic for a dev kit, a conformance
-review, and ~$125/month in fees, so it's a slower parallel track rather
-than the immediate unblock ProjectX was.
+**Rithmic** reaches the many brokers/prop firms running on Rithmic
+infrastructure (AMP Futures, Ironbeam, EdgeClear, Bulenox, Alpha Futures,
+Earn2Trade, and many more) — not tied to any single company's account
+policies, unlike Tradovate (funding requirement) or ProjectX (Topstep
+exclusivity). It isn't self-serve the way ProjectX is: getting real
+credentials requires contacting Rithmic directly for their developer
+dev-kit (an `app_name`/`app_version` they issue, plus a login for their
+free Test/paper-trading system — no funded account needed for that part),
+and going to production later needs a Rithmic-cleared broker relationship,
+a conformance review, and ~$125/month. Architecturally different from the
+other two adapters: Rithmic's real protocol (R|Protocol API) is Google
+Protocol Buffers over WebSocket, and the message schema is only available
+through that dev-kit — there's no working Node.js/TypeScript client for it
+anywhere, and hand-rolling a protobuf implementation without the real
+schema would mean fabricating a wire protocol, not something to guess at.
+
+- `services/rithmic-sidecar/` — a small internal FastAPI service wrapping
+  the real, MIT-licensed, actively-maintained
+  [`async_rithmic`](https://github.com/rundef/async_rithmic) Python
+  library, which does speak the real protocol correctly. Not public-facing
+  — only `apps/api` calls it. See its own README for how to get real
+  credentials and run it locally.
+- `apps/api/src/brokers/rithmic.ts` — talks to the sidecar over plain
+  internal HTTP. The sidecar converts whatever Rithmic actually returns
+  via protobuf reflection (`MessageToDict`) rather than guessed field
+  names, so `parseFill`/`extractAccountId` here are written defensively —
+  same "try several plausible field names, throw loudly with the raw
+  payload on total mismatch" discipline as `tradovate.ts`'s `parseFill`,
+  since the exact shape is genuinely unknown until this runs against a
+  real login.
+- `apps/api/src/routes/rithmic.ts` — direct-credential connect/sync like
+  ProjectX (a Rithmic username/password is a durable broker-issued login,
+  not an OAuth grant). `RITHMIC_SYSTEM_NAME`/`RITHMIC_GATEWAY_URL` are
+  Nova-wide deployment config (which Rithmic system Nova connects
+  through); each end user still brings only their own username/password.
+- A "Connect Rithmic" form lives in the Trading Log panel alongside the
+  other two.
+
+NinjaTrader is a further, architecturally different option worth
+revisiting: instead of Nova's server calling a broker's cloud API, a
+NinjaScript AddOn running inside a trader's own NinjaTrader install would
+push fills to Nova directly. Since NinjaTrader is broker-agnostic on the
+front end (it connects to Rithmic-cleared firms, Tradovate accounts, CQG,
+and is an approved platform at most prop firms), this would reach traders
+regardless of which broker or prop firm sits behind their account — at
+the cost of needing an installed, running desktop plugin rather than a
+pure background cloud sync. Not started — noted here as the next
+candidate if broader reach is needed beyond what Rithmic alone covers.
 
 **Testing with real trade history today, without Tradovate approval**:
 `apps/api/src/routes/fills.ts` adds a `MANUAL` `BrokerProvider` — not a real

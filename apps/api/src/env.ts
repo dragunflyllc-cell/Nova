@@ -14,6 +14,13 @@ const envSchema = z.object({
   TRADOVATE_CLIENT_SECRET: z.string().min(1),
   TRADOVATE_REDIRECT_URI: z.string().url(),
   TRADOVATE_ENV: z.enum(["demo", "live"]).default("demo"),
+
+  // Rithmic — Nova-wide deployment constants (which system/gateway Nova
+  // connects through); each end user still brings their own username/
+  // password. See services/rithmic-sidecar/README.md.
+  RITHMIC_SIDECAR_URL: z.string().url().default("http://localhost:8100"),
+  RITHMIC_SYSTEM_NAME: z.string().min(1),
+  RITHMIC_GATEWAY_URL: z.string().min(1),
 });
 
 export const env = envSchema.parse(process.env);

@@ -51,6 +51,10 @@ interface ProjectXAccountInfo {
   simulated: boolean;
 }
 
+interface RithmicAccountInfo {
+  accountId: string;
+}
+
 const RULE_TYPE_LABEL: Record<RuleType, string> = {
   MAX_TRADES_PER_DAY: "Max trades per day",
   MIN_COOLDOWN_AFTER_LOSS_MINUTES: "Minimum cooldown after a loss (minutes)",
@@ -96,6 +100,13 @@ export function TradingLog() {
   const [pxSyncing, setPxSyncing] = useState(false);
   const [pxSyncResult, setPxSyncResult] = useState<{ fetched: number; stored: number } | null>(null);
   const [pxError, setPxError] = useState("");
+
+  const [rtForm, setRtForm] = useState({ username: "", password: "", accountId: "" });
+  const [rtConnecting, setRtConnecting] = useState(false);
+  const [rtAccount, setRtAccount] = useState<RithmicAccountInfo | null>(null);
+  const [rtSyncing, setRtSyncing] = useState(false);
+  const [rtSyncResult, setRtSyncResult] = useState<{ fetched: number; stored: number } | null>(null);
+  const [rtError, setRtError] = useState("");
 
   const load = useCallback(async () => {
     const [fillsRes, rulesRes, questsRes] = await Promise.all([
@@ -232,6 +243,51 @@ export function TradingLog() {
     }
   }
 
+  async function handleConnectRithmic(e: React.FormEvent) {
+    e.preventDefault();
+    setRtError("");
+    setRtConnecting(true);
+    try {
+      const res = await apiFetch("/me/brokers/rithmic/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: rtForm.username,
+          password: rtForm.password,
+          accountId: rtForm.accountId || undefined,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.error ?? "Couldn't connect that Rithmic account.");
+      }
+      setRtAccount(body.account);
+    } catch (err) {
+      setRtError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setRtConnecting(false);
+    }
+  }
+
+  async function handleSyncRithmic() {
+    setRtError("");
+    setRtSyncing(true);
+    setRtSyncResult(null);
+    try {
+      const res = await apiFetch("/me/brokers/rithmic/sync", { method: "POST" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.error ?? "Rithmic sync failed.");
+      }
+      setRtSyncResult(body);
+      await load();
+    } catch (err) {
+      setRtError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setRtSyncing(false);
+    }
+  }
+
   async function handleSync() {
     setError("");
     setSyncing(true);
@@ -324,6 +380,66 @@ export function TradingLog() {
               <p style={{ marginTop: 8 }}>
                 Fetched {pxSyncResult.fetched} trade{pxSyncResult.fetched === 1 ? "" : "s"} from ProjectX, stored{" "}
                 {pxSyncResult.stored} new fill{pxSyncResult.stored === 1 ? "" : "s"}.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className={styles.card} style={{ marginBottom: 24 }}>
+        <h3 className={styles.cardTitle}>Connect Rithmic</h3>
+        <p className={styles.cardSub}>
+          For accounts at Rithmic-cleared brokers and prop firms. Paste the username and password your broker gave
+          you — Nova never sees a Rithmic app key, only your login.
+        </p>
+        <form className={styles.form} onSubmit={handleConnectRithmic}>
+          <div className={styles.field}>
+            <label htmlFor="rtUsername">Username</label>
+            <input
+              id="rtUsername"
+              value={rtForm.username}
+              onChange={(e) => setRtForm({ ...rtForm, username: e.target.value })}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="rtPassword">Password</label>
+            <input
+              id="rtPassword"
+              type="password"
+              value={rtForm.password}
+              onChange={(e) => setRtForm({ ...rtForm, password: e.target.value })}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="rtAccountId">Account ID (optional)</label>
+            <input
+              id="rtAccountId"
+              placeholder="defaults to first account"
+              value={rtForm.accountId}
+              onChange={(e) => setRtForm({ ...rtForm, accountId: e.target.value })}
+            />
+          </div>
+          <button type="submit" className={styles.submitBtn} disabled={rtConnecting}>
+            {rtConnecting ? "Connecting…" : "Connect"}
+          </button>
+        </form>
+
+        {rtError ? <p style={{ color: "var(--loss)", fontSize: "0.8125rem", marginTop: 8 }}>{rtError}</p> : null}
+
+        {rtAccount ? (
+          <div className={styles.syncResult}>
+            <p>
+              Connected to account <strong>{rtAccount.accountId}</strong>
+            </p>
+            <button type="button" className={styles.syncBtn} onClick={handleSyncRithmic} disabled={rtSyncing}>
+              {rtSyncing ? "Syncing…" : "Sync Rithmic fills"}
+            </button>
+            {rtSyncResult ? (
+              <p style={{ marginTop: 8 }}>
+                Fetched {rtSyncResult.fetched} trade{rtSyncResult.fetched === 1 ? "" : "s"} from Rithmic, stored{" "}
+                {rtSyncResult.stored} new fill{rtSyncResult.stored === 1 ? "" : "s"}.
               </p>
             ) : null}
           </div>

@@ -11,3 +11,8 @@ coverage/
 .env.local
 .env.*.local
 .DS_Store
+
+# Python (services/rithmic-sidecar)
+.venv/
+__pycache__/
+*.pyc

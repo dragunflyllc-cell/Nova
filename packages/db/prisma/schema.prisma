@@ -63,6 +63,12 @@ enum BrokerProvider {
   /// ProjectX Gateway (TopstepX's broker API) — self-serve API-key access,
   /// no partner approval needed. See apps/api/src/brokers/projectx.ts.
   PROJECTX
+  /// Rithmic — reaches the many brokers/prop firms running on Rithmic
+  /// infrastructure (not just one company). Protocol Buffers over
+  /// WebSocket, no Node client exists, so this talks to a small Python
+  /// sidecar (services/rithmic-sidecar) that wraps the real async_rithmic
+  /// library. See apps/api/src/brokers/rithmic.ts.
+  RITHMIC
   /// Not a real broker — a user typing in their own fills by hand (see
   /// apps/api/src/routes/fills.ts). Lets someone test the whole
   /// matching/behavior/rules/unlock pipeline with their real trade history
