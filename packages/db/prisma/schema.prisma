@@ -48,12 +48,14 @@ model User {
   dataSharingConsent   Boolean   @default(false)
   dataSharingConsentAt DateTime?
 
-  refreshTokens     RefreshToken[]
-  characters        UserCharacter[]
-  brokerConnections BrokerConnection[]
-  tradingRules      TradingRule[]
-  behaviorEvents    BehaviorEvent[]
-  questCompletions  QuestCompletion[]
+  refreshTokens      RefreshToken[]
+  characters         UserCharacter[]
+  brokerConnections  BrokerConnection[]
+  tradingRules       TradingRule[]
+  behaviorEvents     BehaviorEvent[]
+  questCompletions   QuestCompletion[]
+  evaluationAttempts EvaluationAttempt[]
+  payoutRequests     PayoutRequest[]
 
   @@map("users")
 }
@@ -240,4 +242,89 @@ model QuestCompletion {
   @@unique([userId, questId])
   @@index([userId])
   @@map("quest_completions")
+}
+
+/// ACTIVE -> PASSED -> (claim-funded) -> FUNDED_ACTIVE -> FUNDED_BREACHED, or
+/// ACTIVE -> FAILED / FUNDED_ACTIVE -> FUNDED_BREACHED on a rule breach.
+/// PASSED and FAILED are both reachable only from ACTIVE; there is no
+/// profit target at the funded stage (real capital is never at risk either
+/// way, so the funded stage only enforces the same daily-loss/drawdown
+/// limits, same as most real evaluation-model prop firms).
+enum EvaluationStatus {
+  ACTIVE
+  PASSED
+  FAILED
+  FUNDED_ACTIVE
+  FUNDED_BREACHED
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+  DENIED
+}
+
+/// One user's run through one EvaluationTier (apps/api/src/propfirm/tiers.ts
+/// holds the static tier content — fee, virtual balance, profit target, risk
+/// limits — same "content in code, not a table" pattern as UserCharacter's
+/// familyId referencing packages/nova-dex). Every dollar here is simulated:
+/// no real broker order is ever placed against pointValueUsd, and no real
+/// capital backs virtualBalanceCents. Status is recomputed from real matched
+/// trades (apps/api/src/propfirm/evaluation.ts) on every
+/// POST /me/propfirm/attempts/:id/sync call — idempotent, same pattern as
+/// sync-xp and /me/rules/check.
+model EvaluationAttempt {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tierId   String
+  /// Trader-declared dollars-per-point for the contract they intend to
+  /// trade — Nova has no per-contract tick-value reference table yet (see
+  /// docs/ARCHITECTURE.md's "Dollar P&L" note on trade matching), so this
+  /// is self-declared, not verified against broker data.
+  pointValueUsd Float
+  status        EvaluationStatus @default(ACTIVE)
+  /// Start of the CURRENT stage's rule window (daily-loss/drawdown/min-days
+  /// are all measured from here) — reset to the claim-funded timestamp when
+  /// moving ACTIVE -> FUNDED_ACTIVE, since the funded stage gets its own
+  /// fresh virtual balance and window, not a continuation of the evaluation's.
+  startedAt          DateTime  @default(now())
+  evaluationPassedAt DateTime?
+  fundedAt           DateTime?
+  /// Set when the attempt reaches a terminal state (FAILED or FUNDED_BREACHED).
+  endedAt            DateTime?
+  /// Cumulative raw (pre-split) profit already accounted for by a PAID
+  /// payout — the baseline the next payout's payable amount is computed
+  /// against, so the same gain is never paid out twice. Increases only on
+  /// payout approval, not on payout request.
+  paidProfitCents Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payoutRequests PayoutRequest[]
+
+  @@index([userId])
+  @@map("evaluation_attempts")
+}
+
+/// A funded-stage trader's request to cash out their share of profit earned
+/// since the last payout (or since going funded, if this is the first).
+/// Approval (PENDING -> PAID) is a manual/back-office action in this v1 —
+/// there is no real payment processor wired up yet (see
+/// docs/ARCHITECTURE.md), so `status` records the firm's payout ledger
+/// intent, not a completed real-money transfer.
+model PayoutRequest {
+  id                  String            @id @default(uuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluationAttemptId String
+  evaluationAttempt   EvaluationAttempt @relation(fields: [evaluationAttemptId], references: [id], onDelete: Cascade)
+  amountCents         Int
+  status              PayoutStatus      @default(PENDING)
+  requestedAt         DateTime          @default(now())
+  resolvedAt          DateTime?
+
+  @@index([userId])
+  @@index([evaluationAttemptId])
+  @@map("payout_requests")
 }

@@ -403,6 +403,107 @@ called `sync`, and confirmed all 4 families unlocked, all 3 quests
 completed, account leveled up, and a second `sync` call granted nothing
 new.
 
+## Prop firm: no-capital evaluation model
+
+Nova can run its own funded-trader program without ever putting real
+trading capital behind a trader's account — the "evaluation" model used by
+firms like FTMO: a trader pays a fee to attempt a challenge against
+rule-based risk limits on a **simulated** account; if they pass and stay
+within the funded stage's limits, they get paid a share of the (still
+simulated) profit out of the pool of fees collected from every attempt, not
+out of real trading gains. This is a new revenue line, distinct from the
+Enterprise section's "prop firms as customers of Nova's dashboards" —
+here, Nova itself is the firm, and the infrastructure it's built on is
+exactly the trade-matching and rules engine already in this repo
+(`trades/matching.ts`, `behavior/rules.ts`).
+
+**`apps/api/src/propfirm/tiers.ts`** — a fixed list of challenge tiers
+(fee, virtual starting balance, profit target %, max daily loss %, max
+overall drawdown %, minimum trading days, profit split %), same "content in
+code" pattern as `behavior/quests.ts`'s `QUESTS`. Figures are Nova's own
+illustrative numbers, not copied from any specific real firm's schedule.
+
+**`apps/api/src/propfirm/evaluation.ts`** — `evaluateAttempt`, a pure
+function scoring one attempt's current live stage (`ACTIVE` or
+`FUNDED_ACTIVE`) against real `MatchedTrade[]` data, same honesty boundary
+and testing style as `checkRule` in `behavior/rules.ts`. Two scope
+decisions flagged directly in its header rather than silently assumed:
+**static (not trailing) drawdown**, measured from the tier's fixed starting
+balance rather than a trailing high-water mark; and an **equity curve built
+from closed trades only** — there's no intra-trade unrealized P&L in
+`MatchedTrade`, so equity only moves at each trade's close. `calculatePayout`
+is the second pure function: a funded trader's payable amount is their
+profit split of whatever raw profit hasn't already been accounted for by a
+prior payout, tracked via `EvaluationAttempt.paidProfitCents` so the same
+gain is never paid out twice. Both are covered by unit tests
+(`evaluation.test.ts`) — profit-target pass, daily-loss breach,
+overall-drawdown breach (across several days each individually under the
+daily limit), the min-trading-days gate holding even when the profit target
+is hit early, funded-stage breach naming (`FUNDED_BREACHED`, not `FAILED`),
+and the double-payment-prevention math in `calculatePayout`.
+
+**The dollars-per-point boundary**: same limitation as trade matching
+itself (`realizedPointsPnl` is in points, not dollars — see "Broker
+integrations" above) — `EvaluationAttempt.pointValueUsd` is trader-declared
+at attempt-start time, not verified against broker data or a contract
+reference table. A trader who mis-declares it gets a wrong equity
+calculation; that's a real v1 simplification, not hidden.
+
+**Routes** (`apps/api/src/routes/propfirm.ts`):
+`GET /propfirm/tiers` (public); `POST /me/propfirm/attempts` (blocks a
+second attempt while one is `ACTIVE`, `PASSED`, or `FUNDED_ACTIVE`);
+`GET /me/propfirm/attempts`; `POST /me/propfirm/attempts/:id/sync`
+(recomputes the live stage and persists any status transition — idempotent,
+a no-op on a terminal or awaiting-claim attempt, same pattern as `sync-xp`
+and `/me/rules/check`); `POST /me/propfirm/attempts/:id/claim-funded`
+(only from `PASSED`; resets `startedAt` to the claim time so the funded
+stage gets its own fresh window rather than inheriting the evaluation
+stage's); `POST /me/propfirm/attempts/:id/payout-request` (re-syncs first
+so a payout can't be requested against a breach that just happened, reserves
+the payable profit against `paidProfitCents` immediately at request time —
+not at approval — so a second request right after can't double-claim the
+same gain); `GET /me/propfirm/payouts`; `GET /propfirm/ledger` (firm-level
+economics: fee revenue implied by every attempt started, versus payouts
+requested/paid — the empirical shape of the "no capital" claim: fees fund
+payouts, not the other way around).
+
+**What's honestly not built yet**, flagged the same way the rest of this
+doc flags gaps rather than papering over them:
+- **No real payment processor.** `POST /me/propfirm/attempts` records a
+  tier's `feeCents` for the ledger but never actually collects it (response
+  includes `feeCollected: false`); nothing here is Stripe-integrated.
+- **No admin/back-office role.** `PayoutRequest` rows are created `PENDING`
+  and there is no API path to move one to `PAID` — see `schema.prisma`'s
+  doc comment on `PayoutRequest`. `GET /propfirm/ledger`'s
+  `payoutsPaidCents` will read `0` until that role exists and someone builds
+  the approval flow (or flips a row directly in the database).
+- **Trusts fill timestamps not to be future-dated across a stage
+  boundary.** The funded stage's window is "trades opened at or after
+  `fundedAt`" with no upper bound at the current wall-clock time. Real
+  broker syncs can't produce a future-dated fill, but a manually-entered
+  fill (`POST /me/fills/manual`, no validation against future dates) placed
+  intentionally in the future could leak into whichever stage's window
+  happens to start before it — a real, narrow integrity gap worth closing
+  (reject future `filledAt` in `fills.ts`, or cap the window's upper bound)
+  before this could handle real money, not something to fix silently as a
+  side effect of this feature.
+- **No web UI.** Everything here is API-only, same v1 shape as the rules
+  engine before `TradingLog.tsx` existed.
+
+**Verified end to end against real seeded Postgres data**, not just unit
+tests: registered users, logged fills via `POST /me/fills/manual`, and
+confirmed live: a daily-loss breach correctly moves `ACTIVE` -> `FAILED`
+with the right worst-loss/limit figures; a profit-target-reached attempt
+correctly stays `ACTIVE` until `minTradingDays` is also met, then transitions
+to `PASSED`; `claim-funded` correctly rejects a non-`PASSED` attempt (409)
+and resets the window on success; a `payout-request` before any funded-stage
+profit correctly rejects (400); a second `payout-request` after further
+funded-stage profit correctly excludes the profit already accounted for by
+the first (the double-payment-prevention math, confirmed against hand
+calculation); re-`sync`ing a terminal attempt is a true no-op; and
+`GET /propfirm/ledger` correctly aggregates fee revenue across multiple
+attempts and tracks pending vs. paid payout liability.
+
 ## Web app
 
 `apps/web` is a Next.js app, currently scoped to what's actually usable
