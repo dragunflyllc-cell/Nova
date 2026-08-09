@@ -3,6 +3,7 @@ import fastifyWebsocket from "@fastify/websocket";
 import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import fastifyCors from "@fastify/cors";
+import { ZodError } from "zod";
 import { env } from "./env.js";
 import { authRoutes } from "./routes/auth.js";
 import { operatorRoutes } from "./routes/operators.js";
@@ -27,6 +28,22 @@ export function buildApp() {
   app.register(fastifyStatic, { root: env.mediaStorageDir, prefix: "/media/" });
 
   app.get("/health", async () => ({ ok: true }));
+
+  // Every route validates its body with `schema.parse(req.body)`
+  // (zod throws on bad input); without this, that throw fell through to
+  // Fastify's default handler as a 500 instead of the 400 it actually is.
+  // A preHandler like `authenticate` that already called `reply.code(401)`
+  // before throwing keeps that status — only a truly unset (still-200)
+  // status falls back to 500 here.
+  app.setErrorHandler((error: Error, _request, reply) => {
+    if (error instanceof ZodError) {
+      reply.code(400);
+      return reply.send({ error: "validation failed", issues: error.issues });
+    }
+    const statusCode = reply.statusCode >= 400 ? reply.statusCode : 500;
+    reply.code(statusCode);
+    return reply.send({ error: error.message });
+  });
 
   app.register(authRoutes);
   app.register(operatorRoutes);

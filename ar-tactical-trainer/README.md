@@ -66,12 +66,19 @@ the live-session page gives you a session ID the operator app joins (see
 `operator-app/README.md` for the Unity-side setup, which needs the Unity
 Editor and isn't runnable in this environment).
 
-`pnpm typecheck` / `pnpm build` cover `server` and `trainer-console`; both
-have been installed, migrated, built, and exercised end-to-end (REST +
-WebSocket relay + a full facility → scenario → session → shots → stats →
-media flow) against a live instance during development. `operator-app` is
-C# source reviewed for correctness against the real AR Foundation/Input
-System/Newtonsoft APIs, but not compiled — no Unity Editor is available in
+`cd server && pnpm test` runs the automated suite (24 tests: password/JWT
+unit tests, and integration tests against a real throwaway SQLite DB —
+`app.inject()` for REST/auth/org-scoping, `app.injectWS()` for the
+trainer↔operator relay, and the stats rollup math against real shot
+events) — provisions and seeds its own test database via `pretest`, no
+manual setup needed. `pnpm typecheck` / `pnpm build` cover `server` and
+`trainer-console`; both have also been installed, migrated, built, and
+exercised end-to-end by hand (REST + WebSocket relay + a full facility →
+scenario → session → shots → stats → media flow, and the full
+register/login/author/session/review/logout loop through a real headless
+browser) during development. `operator-app` is C# source reviewed for
+correctness against the real AR Foundation/Input System/Newtonsoft APIs,
+but not compiled — no Unity Editor is available in
 this environment. Budget Editor time per `operator-app/README.md`.
 
 ## Platform choice
