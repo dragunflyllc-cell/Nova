@@ -1,7 +1,9 @@
 import { api } from "@/lib/api";
+import { requireSession } from "@/lib/session";
 
 export default async function FacilityDetailPage({ params }: { params: { id: string } }) {
-  const facility = await api.getFacility(params.id);
+  const { token } = await requireSession();
+  const facility = await api.getFacility(token, params.id);
 
   return (
     <main className="container">

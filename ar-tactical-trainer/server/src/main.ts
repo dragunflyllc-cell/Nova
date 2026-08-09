@@ -2,7 +2,9 @@ import Fastify from "fastify";
 import fastifyWebsocket from "@fastify/websocket";
 import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
+import fastifyCors from "@fastify/cors";
 import { env } from "./env.js";
+import { authRoutes } from "./routes/auth.js";
 import { operatorRoutes } from "./routes/operators.js";
 import { facilityRoutes } from "./routes/facilities.js";
 import { scenarioRoutes } from "./routes/scenarios.js";
@@ -15,12 +17,18 @@ import { registerWsRelay } from "./ws/relay.js";
 export function buildApp() {
   const app = Fastify({ logger: true });
 
+  // The console (its own origin, :3100 in dev) calls this API directly from
+  // the browser for client components; it forwards the access token as an
+  // Authorization header rather than relying on cookies, so no credentials
+  // mode is needed here — just an allowed origin for the preflight.
+  app.register(fastifyCors, { origin: env.consoleOrigin });
   app.register(fastifyWebsocket);
   app.register(fastifyMultipart);
   app.register(fastifyStatic, { root: env.mediaStorageDir, prefix: "/media/" });
 
   app.get("/health", async () => ({ ok: true }));
 
+  app.register(authRoutes);
   app.register(operatorRoutes);
   app.register(facilityRoutes);
   app.register(scenarioRoutes);

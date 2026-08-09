@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ScenarioDefinition, TargetDefinition, TargetRuntimeState } from "@art/shared-types";
 import { useTrainerLink } from "@/lib/ws";
 import { api } from "@/lib/api";
+import { getClientToken } from "@/lib/auth-client";
 
 interface Props {
   sessionId: string;
@@ -30,9 +31,14 @@ export function LiveConsole({ sessionId, scenario, targetDefinitions }: Props) {
   }
 
   async function endSession(outcome: "pass" | "fail" | "aborted") {
+    const token = getClientToken();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
     setEnding(true);
     send({ type: "END_SCENARIO", payload: {} });
-    await api.endSession(sessionId, outcome);
+    await api.endSession(token, sessionId, outcome);
     router.push(`/sessions/${sessionId}`);
   }
 

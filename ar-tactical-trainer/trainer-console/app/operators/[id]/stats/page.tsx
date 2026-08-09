@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { requireSession } from "@/lib/session";
 
 const ZONE_COLOR: Record<string, string> = {
   head: "#3987e5", // categorical slot 1 (blue)
@@ -7,7 +8,8 @@ const ZONE_COLOR: Record<string, string> = {
 };
 
 export default async function OperatorStatsPage({ params }: { params: { id: string } }) {
-  const stats = await api.getOperatorStats(params.id);
+  const { token } = await requireSession();
+  const stats = await api.getOperatorStats(token, params.id);
   const zoneEntries = Object.entries(stats.hitsByZone) as [string, number][];
   const maxZone = Math.max(1, ...zoneEntries.map(([, v]) => v));
 

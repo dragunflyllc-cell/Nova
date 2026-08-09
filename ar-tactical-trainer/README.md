@@ -58,8 +58,10 @@ cp trainer-console/.env.local.example trainer-console/.env.local
 pnpm dev   # runs server (:4100) and trainer-console (:3100) together
 ```
 
-Visit `localhost:3100` for the trainer console. Register a trainer and an
-operator on the Operators page, author a scenario, and start a session —
+Visit `localhost:3100` for the trainer console — it'll send you to
+`/register` first to create your unit's org and admin account, then
+`/login` for everyone after that. Once signed in, add an operator to the
+roster on the Operators page, author a scenario, and start a session —
 the live-session page gives you a session ID the operator app joins (see
 `operator-app/README.md` for the Unity-side setup, which needs the Unity
 Editor and isn't runnable in this environment).
@@ -90,7 +92,14 @@ browser is the lowest-friction delivery.
 `server/prisma/schema.prisma` datasource to `postgresql` for a real
 multi-unit deployment; the schema is portable (see the comment there).
 
+Trainer-console auth is real: an org registers itself and its first admin
+(`/register`), everyone else logs in (`/login`), and every
+trainer-console-facing server route requires that session and scopes to
+the caller's org — see `docs/ARCHITECTURE.md`'s Auth section for exactly
+what that does and doesn't cover (the operator app's device-facing
+endpoints are deliberately still open; see there for why).
+
 See `docs/ARCHITECTURE.md` for the full design and an honest accounting of
 what's implemented versus flagged as follow-up work (native RoomPlan
 bridge, native full-session video recording, Cloud Anchor facility
-persistence, org/tenant auth).
+persistence, device-side auth).

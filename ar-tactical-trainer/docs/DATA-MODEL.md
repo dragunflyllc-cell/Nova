@@ -9,7 +9,8 @@ read the source files linked below.
 
 | Entity | Where | Notes |
 |---|---|---|
-| `Operator` | `server/prisma/schema.prisma`, `trainer-console/lib/api.ts` | `role`: `operator` \| `trainer` \| `admin`. No auth yet — see ARCHITECTURE.md roadmap. |
+| `Org` | `server/prisma/schema.prisma` | A unit/department/agency. Created once via `POST /auth/register` alongside its first admin; not in `shared-types` since only the server and its Prisma client touch it directly. |
+| `Operator` | `server/prisma/schema.prisma`, `trainer-console/lib/api.ts` | `role`: `operator` \| `trainer` \| `admin`. Only trainer/admin rows carry a `passwordHash` and can log in — see `docs/ARCHITECTURE.md`'s Auth section for the full boundary. Every API response strips `passwordHash`. |
 | `Facility` | `shared-types/src/facility.ts` | A physical building/site. Optional — scenarios can be open-ground instead. |
 | `ScanLayout` | `shared-types/src/facility.ts` | One AR scan of a `Facility`: a mesh asset URL + named `anchors` (id, label, world position) that `TargetPlacement`s can reference. |
 | `TargetDefinition` | `shared-types/src/target.ts` | Catalog entry (seeded by `server/prisma/seed.ts`): `kind` (`hostile`/`hostage`/`nonThreat`), model ref, default appearance. |
@@ -23,19 +24,29 @@ read the source files linked below.
 
 ## REST endpoints (`server/src/routes/`)
 
+🔒 = requires `Authorization: Bearer <accessToken>` (`authenticate` preHandler,
+`server/src/auth/plugin.ts`) and is scoped to the caller's org. Unmarked
+routes are open — either public (the catalog) or device-facing (called
+directly by the operator app, which has no login of its own; see
+`docs/ARCHITECTURE.md`'s Auth section).
+
 | Method & path | Purpose |
 |---|---|
-| `GET/POST /operators` | List / register operators & trainers |
+| `POST /auth/register` | Create an org + its first admin account |
+| `POST /auth/login` | Get an access token |
+| `GET /auth/me` 🔒 | Current operator's identity |
+| `GET /operators` 🔒, `POST /operators` 🔒 (trainer/admin only) | List / add roster members |
 | `GET /target-definitions` | The target catalog |
-| `GET/POST /facilities` | List / add facilities |
-| `GET /facilities/:id` | Facility + its scan layouts |
-| `POST /facilities/:id/scan-layouts` | Register a completed AR scan |
-| `GET/POST /scenarios`, `GET /scenarios/:id` | Author / fetch scenarios |
-| `GET/POST /sessions`, `GET /sessions/:id`, `PATCH /sessions/:id/end` | Session lifecycle |
-| `POST /shots`, `POST /shots/bulk` | REST fallback for logging shots (primary path is the WS relay) |
-| `POST /media/upload/mesh` | Upload a scan mesh (no session) |
-| `POST /media/upload/session` | Upload a session photo/video (creates the `MediaAsset` row) |
-| `GET /operators/:id/stats` | Rolled-up operator stats |
+| `GET /facilities` 🔒, `POST /facilities` 🔒 | List / add facilities |
+| `GET /facilities/:id` 🔒 | Facility + its scan layouts |
+| `POST /facilities/:id/scan-layouts` | Register a completed AR scan (device) |
+| `GET /scenarios` 🔒, `POST /scenarios` 🔒 | List / author scenarios |
+| `GET /scenarios/:id` | Fetch a scenario (device) |
+| `GET /sessions` 🔒, `POST /sessions` 🔒, `GET /sessions/:id` 🔒, `PATCH /sessions/:id/end` 🔒 | Session lifecycle |
+| `POST /shots`, `POST /shots/bulk` | REST fallback for logging shots (device; primary path is the WS relay) |
+| `POST /media/upload/mesh` | Upload a scan mesh (device, no session) |
+| `POST /media/upload/session` | Upload a session photo/video (device; creates the `MediaAsset` row) |
+| `GET /operators/:id/stats` 🔒 | Rolled-up operator stats |
 
 ## WebSocket relay protocol (`shared-types/src/ws-protocol.ts`, `server/src/ws/relay.ts`)
 

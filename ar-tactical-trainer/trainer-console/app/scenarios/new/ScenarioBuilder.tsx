@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TargetDefinition, TargetPlacement, PassFailRule } from "@art/shared-types";
-import { api, type Operator } from "@/lib/api";
-import { DEMO_ORG_ID } from "@/lib/org";
+import { api } from "@/lib/api";
+import { getClientToken } from "@/lib/auth-client";
 import type { Facility } from "@art/shared-types";
 
 interface Props {
   facilities: Facility[];
-  trainers: Operator[];
   targetDefinitions: TargetDefinition[];
 }
 
@@ -32,11 +31,10 @@ const KIND_COLOR: Record<TargetDefinition["kind"], string> = {
   nonThreat: "#4caf6b",
 };
 
-export function ScenarioBuilder({ facilities, trainers, targetDefinitions }: Props) {
+export function ScenarioBuilder({ facilities, targetDefinitions }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [facilityId, setFacilityId] = useState<string>("");
-  const [createdBy, setCreatedBy] = useState(trainers[0]?.id ?? "");
   const [selectedDefId, setSelectedDefId] = useState(targetDefinitions[0]?.id ?? "");
   const [placed, setPlaced] = useState<PlacedTarget[]>([]);
   const [allHostilesNeutralized, setAllHostilesNeutralized] = useState(true);
@@ -73,8 +71,13 @@ export function ScenarioBuilder({ facilities, trainers, targetDefinitions }: Pro
 
   async function handleSubmit() {
     setError(null);
-    if (!name || !createdBy || placed.length === 0) {
-      setError("Name, a trainer, and at least one placed target are required.");
+    if (!name || placed.length === 0) {
+      setError("Name and at least one placed target are required.");
+      return;
+    }
+    const token = getClientToken();
+    if (!token) {
+      setError("Your session expired — please sign in again.");
       return;
     }
     setSubmitting(true);
@@ -109,11 +112,9 @@ export function ScenarioBuilder({ facilities, trainers, targetDefinitions }: Pro
         });
       }
 
-      const scenario = await api.createScenario({
-        orgId: DEMO_ORG_ID,
+      const scenario = await api.createScenario(token, {
         name,
         facilityId: facilityId || null,
-        createdBy,
         targets: targets as TargetPlacement[],
         passFailRules,
       });
@@ -144,18 +145,6 @@ export function ScenarioBuilder({ facilities, trainers, targetDefinitions }: Pro
             ))}
           </select>
         </div>
-        <div className="form-row">
-          <label>Created by (trainer)</label>
-          <select value={createdBy} onChange={(e) => setCreatedBy(e.target.value)}>
-            {trainers.length === 0 && <option value="">No trainers registered</option>}
-            {trainers.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <h2>Pass / fail</h2>
         <div className="form-row">
           <label>

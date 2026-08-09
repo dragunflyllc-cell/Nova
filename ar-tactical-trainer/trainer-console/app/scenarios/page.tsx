@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { DEMO_ORG_ID } from "@/lib/org";
+import { requireSession } from "@/lib/session";
 
 export default async function ScenariosPage() {
-  const scenarios = await api.listScenarios(DEMO_ORG_ID);
+  const { token } = await requireSession();
+  const scenarios = await api.listScenarios(token);
 
   return (
     <main className="container">

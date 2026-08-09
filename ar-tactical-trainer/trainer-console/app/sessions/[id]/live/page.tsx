@@ -1,8 +1,10 @@
 import { api } from "@/lib/api";
+import { requireSession } from "@/lib/session";
 import { LiveConsole } from "./LiveConsole";
 
 export default async function LiveSessionPage({ params }: { params: { id: string } }) {
-  const session = await api.getSession(params.id);
+  const { token } = await requireSession();
+  const session = await api.getSession(token, params.id);
   const scenario = await api.getScenario(session.scenarioId);
   const targetDefinitions = await api.listTargetDefinitions();
 

@@ -100,8 +100,55 @@ target-placement canvas, the live-session WebSocket console) are the only
 `"use client"` components. `lib/ws.ts`'s `useTrainerLink` hook is the
 trainer-side mirror of `operator-app`'s `TrainerLinkClient.cs`.
 
-v1 has no auth/multi-tenant UI — every page scopes to a single hardcoded
-demo org (`lib/org.ts`). See Roadmap.
+Every protected page starts with `requireSession()` (`lib/session.ts`),
+which redirects to `/login` if there's no valid access token; the token
+itself is derived from an httpOnly-**off** cookie (`art_token`) so both
+server components (`next/headers`) and the client components that call the
+API directly (`lib/auth-client.ts`'s `getClientToken()`) can read it. See
+the Auth section below for the full design and its trade-offs.
+
+## Auth
+
+Real accounts, not the earlier single-hardcoded-demo-org setup: an org
+registers itself and its first admin (`POST /auth/register`), every other
+trainer/admin logs in (`POST /auth/login`), and the server issues a
+12-hour JWT access token (`server/src/auth/jwt.ts`) carrying
+`{operatorId, orgId, role}`. Every trainer-console-facing route
+(`authenticate` preHandler, `server/src/auth/plugin.ts`) requires that
+token and derives `orgId` from it — the old `?orgId=` query param is gone,
+closing what used to be a trivially spoofable org boundary. Passwords are
+hashed with Node's built-in `scrypt` (`server/src/auth/password.ts`) — no
+native dependency to install in a sandboxed build.
+
+**Two deliberate scope limits**, not oversights:
+
+- **Only trainer/admin accounts log in.** "Operator" roster rows
+  (`POST /operators`, now itself behind `authenticate` + a trainer/admin
+  role check) have no password and can't authenticate — they're the field
+  roster the console and operator app reference by ID, not people who use
+  the web console. If a unit wants field operators to log in too (e.g. to
+  see their own stats without a trainer around), that's a straightforward
+  extension: give them a password at creation and let them hit
+  `/auth/login` too.
+- **The operator app (the Unity device) has no login flow at all.**
+  Everything it calls directly — `GET /scenarios/:id`, `POST /shots`
+  (+`/bulk`), `POST /media/upload/*`, the WS relay — is deliberately left
+  open. A session/scenario ID handed out by an authenticated trainer
+  console session is the capability a device needs; adding a device-side
+  login would mean writing and testing more Unity networking code I can't
+  compile here (see operator-app's own honesty note in the top-level
+  README). A production deployment would likely want a lightweight device
+  API key or short-lived per-session token minted by the console and
+  handed to the operator app at join time — noted as roadmap, not built.
+
+**Also not built, on the console side:** refresh-token rotation (the
+access token just expires after 12h and the trainer logs in again — no
+separate long-lived refresh token, unlike Nova's own auth pattern), and
+the `art_token` cookie is intentionally not `httpOnly` so client
+components can read it directly, which is a real (if minor, for an
+internal ops tool) XSS trade-off against a cleaner httpOnly-cookie design
+that would need every client-side API call proxied through a Next.js
+route handler instead.
 
 ## Operator app (`operator-app/`)
 
@@ -156,10 +203,13 @@ exact spot in the code where it belongs:
   `Scanning/FacilityScanner.cs` rather than implemented against an
   anchor-creation API that changed shape across recent AR Foundation
   versions and couldn't be verified without a compiler.
-- **Org/tenant auth** — the server has no auth middleware and the console
-  hardcodes one demo org (`trainer-console/lib/org.ts`). Real deployment
-  across multiple units/agencies needs real accounts and org scoping —
-  same shape as Nova's own auth (email/password + JWT), not built here.
+- **Device-side auth, refresh-token rotation, httpOnly session cookie** —
+  org/tenant auth for the *trainer console* is built (see the Auth section
+  above); what's still open is a device API key/short-lived token for the
+  operator app's currently-unauthenticated endpoints, a real rotating
+  refresh token instead of a flat 12h access token, and moving the
+  console's token out of a JS-readable cookie behind a route-handler
+  proxy.
 - **Verbal-command-triggered target behavior, facility-scan UI (Start/Drop
   Anchor/Finish screen), QR-code session join** — noted as fast-follow
   work in `operator-app/README.md`'s final section; none block the core

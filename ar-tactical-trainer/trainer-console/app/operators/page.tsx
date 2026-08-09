@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { DEMO_ORG_ID } from "@/lib/org";
+import { requireSession } from "@/lib/session";
 import { createOperatorAction } from "./actions";
 
 export default async function OperatorsPage() {
-  const operators = await api.listOperators(DEMO_ORG_ID);
+  const { token } = await requireSession();
+  const operators = await api.listOperators(token);
 
   return (
     <main className="container">

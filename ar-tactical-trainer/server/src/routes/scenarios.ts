@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { toScenario } from "../lib/mappers.js";
+import { authenticate } from "../auth/plugin.js";
 
 const vec3Schema = z.object({ x: z.number(), y: z.number(), z: z.number() });
 
@@ -46,25 +47,25 @@ const passFailRuleSchema = z.object({
 });
 
 const createScenarioSchema = z.object({
-  orgId: z.string().min(1),
   name: z.string().min(1),
   facilityId: z.string().nullable().default(null),
   targets: z.array(targetPlacementInputSchema).default([]),
   passFailRules: z.array(passFailRuleSchema).default([]),
-  createdBy: z.string().min(1),
 });
 
 export async function scenarioRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/scenarios", async (req) => {
-    const { orgId } = req.query as { orgId?: string };
+  app.get("/scenarios", { preHandler: authenticate }, async (req) => {
     const rows = await prisma.scenario.findMany({
-      where: orgId ? { orgId } : undefined,
+      where: { orgId: req.operator!.orgId },
       include: { targets: true },
       orderBy: { createdAt: "desc" },
     });
     return rows.map(toScenario);
   });
 
+  // Called directly by the operator app to load its assigned scenario —
+  // no login flow on the device, so this stays open; the scenario ID
+  // itself is the capability. See docs/ARCHITECTURE.md.
   app.get("/scenarios/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
     const row = await prisma.scenario.findUnique({
@@ -78,14 +79,14 @@ export async function scenarioRoutes(app: FastifyInstance): Promise<void> {
     return toScenario(row);
   });
 
-  app.post("/scenarios", async (req, reply) => {
+  app.post("/scenarios", { preHandler: authenticate }, async (req, reply) => {
     const body = createScenarioSchema.parse(req.body);
     const row = await prisma.scenario.create({
       data: {
-        orgId: body.orgId,
+        orgId: req.operator!.orgId,
         name: body.name,
         facilityId: body.facilityId,
-        createdBy: body.createdBy,
+        createdBy: req.operator!.operatorId,
         passFailRulesJson: JSON.stringify(body.passFailRules),
         targets: {
           create: body.targets.map((t) => ({

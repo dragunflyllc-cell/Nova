@@ -1,11 +1,12 @@
 import { api } from "@/lib/api";
-import { DEMO_ORG_ID } from "@/lib/org";
+import { requireSession } from "@/lib/session";
 import { startSessionAction } from "./actions";
 
 export default async function ScenarioDetailPage({ params }: { params: { id: string } }) {
+  const { token } = await requireSession();
   const [scenario, operators, targetDefinitions] = await Promise.all([
     api.getScenario(params.id),
-    api.listOperators(DEMO_ORG_ID),
+    api.listOperators(token),
     api.listTargetDefinitions(),
   ]);
   const defById = new Map(targetDefinitions.map((d) => [d.id, d]));

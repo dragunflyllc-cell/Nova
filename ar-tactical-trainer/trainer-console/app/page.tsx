@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { DEMO_ORG_ID } from "@/lib/org";
+import { requireSession } from "@/lib/session";
 
 export default async function DashboardPage() {
+  const { token, operator } = await requireSession();
   const [facilities, scenarios, operators] = await Promise.all([
-    api.listFacilities(DEMO_ORG_ID),
-    api.listScenarios(DEMO_ORG_ID),
-    api.listOperators(DEMO_ORG_ID),
+    api.listFacilities(token),
+    api.listScenarios(token),
+    api.listOperators(token),
   ]);
 
   return (
     <main className="container">
       <h1>Overview</h1>
+      <p className="text-dim">Signed in as {operator.name} ({operator.role}).</p>
       <div className="grid grid-3">
         <div className="stat-tile">
           <div className="value">{facilities.length}</div>

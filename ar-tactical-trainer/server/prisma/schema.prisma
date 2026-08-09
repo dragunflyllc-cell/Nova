@@ -10,13 +10,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Operator {
+model Org {
   id        String   @id @default(cuid())
-  orgId     String
   name      String
-  email     String   @unique
-  role      String // "operator" | "trainer" | "admin"
   createdAt DateTime @default(now())
+
+  operators  Operator[]
+  facilities Facility[]
+  scenarios  Scenario[]
+}
+
+model Operator {
+  id           String   @id @default(cuid())
+  orgId        String
+  org          Org      @relation(fields: [orgId], references: [id])
+  name         String
+  email        String   @unique
+  role         String // "operator" | "trainer" | "admin"
+  // Only trainer/admin accounts log into the trainer console, so this is
+  // null for roster-only "operator" rows added by a trainer — see
+  // docs/ARCHITECTURE.md's Auth section for the full boundary.
+  passwordHash String?
+  createdAt    DateTime @default(now())
 
   sessionsAsOperator Session[]    @relation("OperatorSessions")
   sessionsAsTrainer  Session[]    @relation("TrainerSessions")
@@ -28,6 +43,7 @@ model Operator {
 model Facility {
   id        String   @id @default(cuid())
   orgId     String
+  org       Org      @relation(fields: [orgId], references: [id])
   name      String
   createdAt DateTime @default(now())
 
@@ -63,6 +79,7 @@ model TargetDefinition {
 model Scenario {
   id                String    @id @default(cuid())
   orgId             String
+  org               Org       @relation(fields: [orgId], references: [id])
   name              String
   facilityId        String?
   facility          Facility? @relation(fields: [facilityId], references: [id])

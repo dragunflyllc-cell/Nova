@@ -11,12 +11,21 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4100";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export class UnauthorizedError extends Error {}
+
+async function request<T>(path: string, token: string | null, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...init?.headers },
+    headers: {
+      "content-type": "application/json",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
     cache: "no-store",
   });
+  if (res.status === 401) {
+    throw new UnauthorizedError("session expired — please log in again");
+  }
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`${init?.method ?? "GET"} ${path} failed: ${res.status} ${body}`);
@@ -33,40 +42,50 @@ export interface Operator {
   createdAt: string;
 }
 
+export interface AuthResult {
+  accessToken: string;
+  operator: Omit<Operator, "createdAt">;
+}
+
 export const api = {
-  listOperators: (orgId?: string) =>
-    request<Operator[]>(`/operators${orgId ? `?orgId=${orgId}` : ""}`),
-  createOperator: (input: Pick<Operator, "orgId" | "name" | "email" | "role">) =>
-    request<Operator>("/operators", { method: "POST", body: JSON.stringify(input) }),
+  register: (input: { orgName: string; name: string; email: string; password: string }) =>
+    request<AuthResult>("/auth/register", null, { method: "POST", body: JSON.stringify(input) }),
+  login: (input: { email: string; password: string }) =>
+    request<AuthResult>("/auth/login", null, { method: "POST", body: JSON.stringify(input) }),
+  me: (token: string) => request<Omit<Operator, "createdAt">>("/auth/me", token),
 
-  listTargetDefinitions: () => request<TargetDefinition[]>("/target-definitions"),
+  listOperators: (token: string) => request<Operator[]>("/operators", token),
+  addRosterMember: (token: string, input: { name: string; email: string; role: "operator" | "trainer" | "admin" }) =>
+    request<Operator>("/operators", token, { method: "POST", body: JSON.stringify(input) }),
 
-  listFacilities: (orgId?: string) =>
-    request<Facility[]>(`/facilities${orgId ? `?orgId=${orgId}` : ""}`),
-  createFacility: (input: { orgId: string; name: string }) =>
-    request<Facility>("/facilities", { method: "POST", body: JSON.stringify(input) }),
-  getFacility: (id: string) =>
-    request<Facility & { scanLayouts: ScanLayout[] }>(`/facilities/${id}`),
+  listTargetDefinitions: () => request<TargetDefinition[]>("/target-definitions", null),
 
-  listScenarios: (orgId?: string) =>
-    request<ScenarioDefinition[]>(`/scenarios${orgId ? `?orgId=${orgId}` : ""}`),
-  getScenario: (id: string) => request<ScenarioDefinition>(`/scenarios/${id}`),
+  listFacilities: (token: string) => request<Facility[]>("/facilities", token),
+  createFacility: (token: string, input: { name: string }) =>
+    request<Facility>("/facilities", token, { method: "POST", body: JSON.stringify(input) }),
+  getFacility: (token: string, id: string) =>
+    request<Facility & { scanLayouts: ScanLayout[] }>(`/facilities/${id}`, token),
+
+  listScenarios: (token: string) => request<ScenarioDefinition[]>("/scenarios", token),
+  // Public: the operator app loads a scenario by ID with no login of its own.
+  getScenario: (id: string) => request<ScenarioDefinition>(`/scenarios/${id}`, null),
   createScenario: (
-    input: Omit<ScenarioDefinition, "id" | "createdAt">,
-  ) => request<ScenarioDefinition>("/scenarios", { method: "POST", body: JSON.stringify(input) }),
+    token: string,
+    input: Omit<ScenarioDefinition, "id" | "createdAt" | "orgId" | "createdBy">,
+  ) => request<ScenarioDefinition>("/scenarios", token, { method: "POST", body: JSON.stringify(input) }),
 
-  createSession: (input: { scenarioId: string; operatorId: string; trainerId: string }) =>
-    request<Session>("/sessions", { method: "POST", body: JSON.stringify(input) }),
-  getSession: (id: string) =>
-    request<Session & { shotEvents: ShotEvent[]; mediaAssets: MediaAsset[] }>(`/sessions/${id}`),
-  endSession: (id: string, outcome: "pass" | "fail" | "aborted") =>
-    request<Session>(`/sessions/${id}/end`, {
+  createSession: (token: string, input: { scenarioId: string; operatorId: string; trainerId: string }) =>
+    request<Session>("/sessions", token, { method: "POST", body: JSON.stringify(input) }),
+  getSession: (token: string, id: string) =>
+    request<Session & { shotEvents: ShotEvent[]; mediaAssets: MediaAsset[] }>(`/sessions/${id}`, token),
+  endSession: (token: string, id: string, outcome: "pass" | "fail" | "aborted") =>
+    request<Session>(`/sessions/${id}/end`, token, {
       method: "PATCH",
       body: JSON.stringify({ outcome }),
     }),
 
-  getOperatorStats: (operatorId: string) =>
-    request<OperatorStatsSummary>(`/operators/${operatorId}/stats`),
+  getOperatorStats: (token: string, operatorId: string) =>
+    request<OperatorStatsSummary>(`/operators/${operatorId}/stats`, token),
 };
 
 export const API_URL_PUBLIC = API_URL;
