@@ -8,8 +8,10 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
-    "pretest": "DATABASE_URL=file:./test.db MEDIA_STORAGE_DIR=./prisma/test-media prisma migrate deploy && DATABASE_URL=file:./test.db tsx prisma/seed.ts",
-    "test": "DATABASE_URL=file:./test.db MEDIA_STORAGE_DIR=./prisma/test-media vitest run",
+    "pretest": "DATABASE_URL=file:./test.db MEDIA_STORAGE_DIR=./prisma/test-media DISABLE_AUTH=false prisma migrate deploy && DATABASE_URL=file:./test.db DISABLE_AUTH=false tsx prisma/seed.ts",
+    "test": "DATABASE_URL=file:./test.db MEDIA_STORAGE_DIR=./prisma/test-media DISABLE_AUTH=false vitest run",
+    "test:devmode": "DATABASE_URL=file:./test-devmode.db MEDIA_STORAGE_DIR=./prisma/test-media-devmode prisma migrate deploy && DATABASE_URL=file:./test-devmode.db MEDIA_STORAGE_DIR=./prisma/test-media-devmode vitest run --config vitest.devmode.config.ts",
+    "test:all": "pnpm test && pnpm test:devmode",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts"

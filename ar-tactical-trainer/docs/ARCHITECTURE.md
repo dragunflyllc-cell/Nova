@@ -109,16 +109,36 @@ the Auth section below for the full design and its trade-offs.
 
 ## Auth
 
-Real accounts, not the earlier single-hardcoded-demo-org setup: an org
+Real accounts exist and work, but **auth is off by default** while the
+project is still proving itself out (`DISABLE_AUTH` defaults to on —
+`server/.env.example`, `server/src/env.ts`). With it off, every request
+acts as one fixed auto-created org/admin (`server/src/auth/dev-mode.ts`)
+— no login screen, no passwords, nothing to configure. The trainer
+console shows a visible "DEV MODE — no login" badge in the nav
+(`app/layout.tsx`) whenever this is active, specifically so it's never a
+silent security posture nobody notices.
+
+The real system is fully built underneath and one setting away: an org
 registers itself and its first admin (`POST /auth/register`), every other
 trainer/admin logs in (`POST /auth/login`), and the server issues a
 12-hour JWT access token (`server/src/auth/jwt.ts`) carrying
 `{operatorId, orgId, role}`. Every trainer-console-facing route
 (`authenticate` preHandler, `server/src/auth/plugin.ts`) requires that
-token and derives `orgId` from it — the old `?orgId=` query param is gone,
-closing what used to be a trivially spoofable org boundary. Passwords are
-hashed with Node's built-in `scrypt` (`server/src/auth/password.ts`) — no
-native dependency to install in a sandboxed build.
+token and derives `orgId` from it when enabled — no `?orgId=` query param
+anywhere for a client to spoof. Passwords are hashed with Node's built-in
+`scrypt` (`server/src/auth/password.ts`) — no native dependency to
+install in a sandboxed build. **To turn it on:** set `DISABLE_AUTH=false`
+in `server/.env` and `NEXT_PUBLIC_AUTH_DISABLED=false` in
+`trainer-console/.env.local`, restart both, then register your first real
+account at `/register`. The server refuses to boot with auth disabled
+when `NODE_ENV=production`, so this can't ship silently insecure.
+
+The test suite covers both postures: `pnpm test` forces `DISABLE_AUTH=false`
+and exercises real login/org-isolation (`src/routes/auth.test.ts`,
+`src/routes/org-scoping.test.ts`); `pnpm test:devmode` runs
+`src/auth/dev-mode.manual-test.ts` against a separate DB with auth left
+at its default (on), confirming protected routes work with no token at
+all. `pnpm test:all` runs both.
 
 **Two deliberate scope limits**, not oversights:
 

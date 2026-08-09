@@ -24,11 +24,14 @@ read the source files linked below.
 
 ## REST endpoints (`server/src/routes/`)
 
-🔒 = requires `Authorization: Bearer <accessToken>` (`authenticate` preHandler,
-`server/src/auth/plugin.ts`) and is scoped to the caller's org. Unmarked
-routes are open — either public (the catalog) or device-facing (called
-directly by the operator app, which has no login of its own; see
-`docs/ARCHITECTURE.md`'s Auth section).
+🔒 = goes through the `authenticate` preHandler (`server/src/auth/plugin.ts`)
+and is scoped to the caller's org. **Today, with `DISABLE_AUTH` at its
+default (on), 🔒 routes still work with no token at all** — they're
+scoped to one fixed auto-created org instead. Set `DISABLE_AUTH=false` to
+require a real `Authorization: Bearer <accessToken>` on them, same as the
+old behavior. Unmarked routes are open regardless — either public (the
+catalog) or device-facing (called directly by the operator app, which has
+no login of its own; see `docs/ARCHITECTURE.md`'s Auth section).
 
 | Method & path | Purpose |
 |---|---|

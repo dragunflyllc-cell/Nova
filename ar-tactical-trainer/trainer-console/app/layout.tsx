@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
-import { getOptionalSession } from "@/lib/session";
+import { getOptionalSession, AUTH_DISABLED } from "@/lib/session";
 import { logoutAction } from "./login/actions";
 
 export const metadata: Metadata = {
@@ -22,14 +22,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/facilities">Facilities</Link>
               <Link href="/scenarios">Scenarios</Link>
               <Link href="/operators">Operators</Link>
-              <span className="text-dim" style={{ marginLeft: "auto" }}>
-                {session.operator.name} · {session.operator.role}
-              </span>
-              <form action={logoutAction}>
-                <button type="submit" className="secondary">
-                  Sign out
-                </button>
-              </form>
+              {AUTH_DISABLED ? (
+                <span
+                  className="badge"
+                  style={{ marginLeft: "auto", background: "rgba(224,178,63,.15)", color: "var(--warn)" }}
+                  title="No login required — set DISABLE_AUTH=false on the server to turn real accounts back on"
+                >
+                  DEV MODE — no login
+                </span>
+              ) : (
+                <>
+                  <span className="text-dim" style={{ marginLeft: "auto" }}>
+                    {session.operator.name} · {session.operator.role}
+                  </span>
+                  <form action={logoutAction}>
+                    <button type="submit" className="secondary">
+                      Sign out
+                    </button>
+                  </form>
+                </>
+              )}
             </>
           )}
         </nav>

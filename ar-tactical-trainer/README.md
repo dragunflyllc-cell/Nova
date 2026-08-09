@@ -58,20 +58,23 @@ cp trainer-console/.env.local.example trainer-console/.env.local
 pnpm dev   # runs server (:4100) and trainer-console (:3100) together
 ```
 
-Visit `localhost:3100` for the trainer console — it'll send you to
-`/register` first to create your unit's org and admin account, then
-`/login` for everyone after that. Once signed in, add an operator to the
-roster on the Operators page, author a scenario, and start a session —
-the live-session page gives you a session ID the operator app joins (see
-`operator-app/README.md` for the Unity-side setup, which needs the Unity
-Editor and isn't runnable in this environment).
+Visit `localhost:3100` for the trainer console — it drops you straight
+onto the dashboard, no login (there's a "DEV MODE — no login" badge in
+the nav so that's never a silent surprise; see `docs/ARCHITECTURE.md`'s
+Auth section for how to turn real accounts on when you're ready). Add an
+operator to the roster on the Operators page, author a scenario, and
+start a session — the live-session page gives you a session ID the
+operator app joins (see `operator-app/README.md` for the Unity-side
+setup, which needs the Unity Editor and isn't runnable in this
+environment).
 
-`cd server && pnpm test` runs the automated suite (24 tests: password/JWT
-unit tests, and integration tests against a real throwaway SQLite DB —
-`app.inject()` for REST/auth/org-scoping, `app.injectWS()` for the
-trainer↔operator relay, and the stats rollup math against real shot
-events) — provisions and seeds its own test database via `pretest`, no
-manual setup needed. `pnpm typecheck` / `pnpm build` cover `server` and
+`cd server && pnpm test:all` runs the automated suite (28 tests:
+password/JWT unit tests, integration tests against a real throwaway
+SQLite DB — `app.inject()` for REST/auth/org-scoping, `app.injectWS()`
+for the trainer↔operator relay, the stats rollup math against real shot
+events — plus a separate dev-mode suite confirming protected routes work
+with zero token when auth is off) — provisions and seeds its own test
+database, no manual setup needed. `pnpm typecheck` / `pnpm build` cover `server` and
 `trainer-console`; both have also been installed, migrated, built, and
 exercised end-to-end by hand (REST + WebSocket relay + a full facility →
 scenario → session → shots → stats → media flow, and the full

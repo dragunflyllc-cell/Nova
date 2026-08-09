@@ -1,5 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { verifyAccessToken, type AccessTokenClaims } from "./jwt.js";
+import { getDevModeOperatorClaims } from "./dev-mode.js";
+import { env } from "../env.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -15,8 +17,18 @@ declare module "fastify" {
  * this — the app has no login flow, and a session/scenario ID already
  * acts as the capability a device needs. See docs/ARCHITECTURE.md's Auth
  * section for the full boundary and its trade-offs.
+ *
+ * When env.authDisabled (the default today), every request is treated as
+ * the fixed dev-mode identity regardless of what — if anything — is in
+ * the Authorization header. Real token verification only happens once
+ * that's turned off.
  */
 export async function authenticate(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+  if (env.authDisabled) {
+    req.operator = await getDevModeOperatorClaims();
+    return;
+  }
+
   const header = req.headers.authorization;
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length) : null;
   if (!token) {

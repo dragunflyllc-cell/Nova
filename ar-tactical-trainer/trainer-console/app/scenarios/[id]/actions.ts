@@ -1,13 +1,12 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
-import { TOKEN_COOKIE } from "@/lib/auth-constants";
+import { getActionToken } from "@/lib/session";
 
 export async function startSessionAction(scenarioId: string, formData: FormData) {
-  const token = cookies().get(TOKEN_COOKIE)?.value;
-  if (!token) redirect("/login");
+  const token = getActionToken();
+  if (token === null) redirect("/login");
 
   const operatorId = String(formData.get("operatorId") ?? "");
   const trainerId = String(formData.get("trainerId") ?? "");

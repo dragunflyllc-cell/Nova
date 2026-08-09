@@ -3,6 +3,7 @@
 *.db-journal
 server/data/
 server/prisma/test-media/
+server/prisma/test-media-devmode/
 
 # Unity (operator-app) — everything Unity regenerates locally
 operator-app/Library/

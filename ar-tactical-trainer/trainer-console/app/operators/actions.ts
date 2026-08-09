@@ -1,13 +1,12 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { api } from "@/lib/api";
-import { TOKEN_COOKIE } from "@/lib/auth-constants";
+import { getActionToken } from "@/lib/session";
 
 export async function createOperatorAction(formData: FormData) {
-  const token = cookies().get(TOKEN_COOKIE)?.value;
-  if (!token) return;
+  const token = getActionToken();
+  if (token === null) return;
 
   const name = String(formData.get("name") ?? "");
   const email = String(formData.get("email") ?? "");
