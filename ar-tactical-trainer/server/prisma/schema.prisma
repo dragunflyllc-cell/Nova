@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite for zero-config local dev. Swap to "postgresql" + a DATABASE_URL
+  // for multi-unit / production deployment — the schema below is portable,
+  // only the JSON-as-String fields would become native Json columns.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Operator {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  email     String   @unique
+  role      String // "operator" | "trainer" | "admin"
+  createdAt DateTime @default(now())
+
+  sessionsAsOperator Session[]    @relation("OperatorSessions")
+  sessionsAsTrainer  Session[]    @relation("TrainerSessions")
+  scanLayouts        ScanLayout[]
+
+  @@index([orgId])
+}
+
+model Facility {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  createdAt DateTime @default(now())
+
+  scanLayouts ScanLayout[]
+  scenarios   Scenario[]
+
+  @@index([orgId])
+}
+
+model ScanLayout {
+  id                   String   @id @default(cuid())
+  facilityId           String
+  facility             Facility @relation(fields: [facilityId], references: [id])
+  meshAssetUrl         String
+  anchorsJson          String // JSON: { anchorId, label, position }[]
+  capturedAt           DateTime @default(now())
+  capturedByOperatorId String
+  capturedBy           Operator @relation(fields: [capturedByOperatorId], references: [id])
+
+  @@index([facilityId])
+}
+
+model TargetDefinition {
+  id                    String @id @default(cuid())
+  name                  String
+  kind                  String // "hostile" | "hostage" | "nonThreat"
+  modelRef              String
+  defaultAppearanceJson String // JSON
+
+  placements TargetPlacement[]
+}
+
+model Scenario {
+  id                String    @id @default(cuid())
+  orgId             String
+  name              String
+  facilityId        String?
+  facility          Facility? @relation(fields: [facilityId], references: [id])
+  passFailRulesJson String // JSON PassFailRule[]
+  createdBy         String
+  createdAt         DateTime  @default(now())
+
+  targets  TargetPlacement[]
+  sessions Session[]
+
+  @@index([orgId])
+}
+
+model TargetPlacement {
+  id                      String           @id @default(cuid())
+  scenarioId              String
+  scenario                Scenario         @relation(fields: [scenarioId], references: [id])
+  targetDefinitionId      String
+  targetDefinition        TargetDefinition @relation(fields: [targetDefinitionId], references: [id])
+  anchorJson              String // JSON SpatialAnchor
+  appearanceOverrideJson  String? // JSON
+  behaviorScriptJson      String // JSON BehaviorStep[]
+
+  shotEvents ShotEvent[]
+
+  @@index([scenarioId])
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  scenarioId String
+  scenario   Scenario  @relation(fields: [scenarioId], references: [id])
+  operatorId String
+  operator   Operator  @relation("OperatorSessions", fields: [operatorId], references: [id])
+  trainerId  String
+  trainer    Operator  @relation("TrainerSessions", fields: [trainerId], references: [id])
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  outcome    String    @default("inProgress") // pass | fail | aborted | inProgress
+
+  shotEvents  ShotEvent[]
+  mediaAssets MediaAsset[]
+
+  @@index([operatorId])
+  @@index([scenarioId])
+}
+
+model ShotEvent {
+  id                String          @id @default(cuid())
+  sessionId         String
+  session           Session         @relation(fields: [sessionId], references: [id])
+  targetPlacementId String
+  targetPlacement   TargetPlacement @relation(fields: [targetPlacementId], references: [id])
+  timestampMs       BigInt // epoch ms — Int overflows past ~2038, must be BigInt
+  hit               Boolean
+  hitZone           String? // "head" | "chest" | "limb"
+  reactionTimeMs    Int?
+  splitTimeMs       Int?
+
+  @@index([sessionId])
+}
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  kind        String // "video" | "photo"
+  url         String
+  timestampMs BigInt // epoch ms — Int overflows past ~2038, must be BigInt
+
+  @@index([sessionId])
+}
