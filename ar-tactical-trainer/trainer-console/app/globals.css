@@ -164,4 +164,36 @@ nav .brand {
 .text-dim { color: var(--text-dim); }
 .form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .form-row label { font-size: 12px; color: var(--text-dim); }
-.form-actions { display: flex; gap: 8px; }
+.form-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* The coordinator runs this from a phone as often as a laptop — collapse
+   multi-column layouts, let the nav wrap, and make tables (which don't
+   reflow on their own) scroll horizontally instead of overflowing the
+   page. */
+@media (max-width: 640px) {
+  .container {
+    padding: 12px;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  nav {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 10px 16px;
+  }
+
+  nav .badge,
+  nav form {
+    margin-left: 0 !important;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

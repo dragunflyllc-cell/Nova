@@ -48,9 +48,14 @@ export function ScenarioBuilder({ facilities, targetDefinitions }: Props) {
     const rect = e.currentTarget.getBoundingClientRect();
     const px = e.clientX - rect.left;
     const py = e.clientY - rect.top;
+    // The canvas is square and scales to fit the screen (phone or laptop —
+    // see globals.css), so pixels-per-meter must come from the actual
+    // rendered size, not the CANVAS_PX/PX_PER_METER design constants —
+    // those only size the element and space the background grid lines.
+    const pxPerMeter = rect.width / METERS;
     // Canvas is top-down: screen-x -> world x, screen-y -> world z (forward).
-    const x = Number((px / PX_PER_METER - METERS / 2).toFixed(2));
-    const z = Number((py / PX_PER_METER).toFixed(2));
+    const x = Number((px / pxPerMeter - METERS / 2).toFixed(2));
+    const z = Number((py / pxPerMeter).toFixed(2));
     setPlaced((prev) => [
       ...prev,
       { key: crypto.randomUUID(), targetDefinitionId: selectedDefId, x, z, rotationYDeg: 180 },
@@ -199,9 +204,9 @@ export function ScenarioBuilder({ facilities, targetDefinitions }: Props) {
         <div
           onClick={handleCanvasClick}
           style={{
-            width: CANVAS_PX,
-            height: CANVAS_PX,
-            maxWidth: "100%",
+            width: "100%",
+            maxWidth: CANVAS_PX,
+            aspectRatio: "1 / 1",
             background:
               "repeating-linear-gradient(0deg, #1c211e, #1c211e 1px, transparent 1px, transparent 28px), repeating-linear-gradient(90deg, #1c211e, #1c211e 1px, transparent 1px, transparent 28px)",
             backgroundColor: "var(--bg-panel-2)",
@@ -228,8 +233,11 @@ export function ScenarioBuilder({ facilities, targetDefinitions }: Props) {
           </div>
           {placed.map((p) => {
             const def = defFor(p.targetDefinitionId);
-            const left = (p.x + METERS / 2) * PX_PER_METER;
-            const top = p.z * PX_PER_METER;
+            // Percentages, not the fixed PX_PER_METER — the canvas itself
+            // scales (aspectRatio square, width up to CANVAS_PX) to fit
+            // whatever screen it's on, phone included.
+            const left = `${((p.x + METERS / 2) / METERS) * 100}%`;
+            const top = `${(p.z / METERS) * 100}%`;
             return (
               <div
                 key={p.key}

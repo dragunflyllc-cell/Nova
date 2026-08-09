@@ -176,8 +176,9 @@ Unity + AR Foundation; see `operator-app/README.md` for the full Editor
 setup this needs (it's C# source only — no `.unity`/`.prefab` files, which
 only the Unity Editor can generate). Key pieces:
 
-- **`Input/`** — `IShotTrigger` interface with three implementations
-  (Bluetooth HID switch, screen tap, desktop test key); `Core/ShotResolver`
+- **`Input/`** — `IShotTrigger` interface with four implementations
+  (volume button — v1's default, native plugin, no hardware needed;
+  Bluetooth HID switch; screen tap; desktop test key); `Core/ShotResolver`
   subscribes to all of them uniformly, so the trigger hardware is a
   pluggable detail, not baked into the hit-detection code.
 - **`Core/ShotResolver`** — the raycast + hit-zone resolution; `HitFeedbackUI`
@@ -201,9 +202,19 @@ only the Unity Editor can generate). Key pieces:
 
 ## What's built vs. roadmap
 
-Everything above is real, working code. A few pieces are deliberately
-**documented extension points, not silent gaps** — each is flagged at the
-exact spot in the code where it belongs:
+Everything above is real, working code — with one nuance: the volume-
+button trigger (`Assets/Plugins/iOS/ARTVolumeButtonTrigger.mm`) is a
+*complete* native plugin, not a stub, but like the rest of `operator-app`
+it hasn't run on a real device. It was written because it's a narrow,
+extremely well-precedented single technique (the same trick countless iOS
+camera apps use), unlike the items below — RoomPlan and ReplayKit are
+broader APIs with more moving parts and more ways to get subtly wrong
+without a compiler to catch it, which is why those are stubs instead.
+First-build verification note is in `operator-app/README.md`'s "Volume
+button trigger" section.
+
+A few pieces are deliberately **documented extension points, not silent
+gaps** — each is flagged at the exact spot in the code where it belongs:
 
 - **Native RoomPlan bridge** (`Scanning/IRoomPlanBridge.cs`) — Apple's
   RoomPlan gives LiDAR-quality parametric room capture (walls, doors,

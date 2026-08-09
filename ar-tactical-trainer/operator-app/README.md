@@ -2,9 +2,17 @@
 
 The phone-on-gun app. AR camera passthrough, a fixed bore-sighted reticle,
 target spawning/behavior driven by a scenario authored in the trainer
-console, hit detection via a Bluetooth trigger switch (or screen-tap /
-desktop-key for testing), photo capture on every shot, live telemetry back
-to the trainer console, and local stats logging.
+console, hit detection via **either physical volume button** (v1's
+default — see below, no extra hardware needed), photo capture on every
+shot, live telemetry back to the trainer console, and local stats
+logging. A Bluetooth trigger switch and screen-tap are also wired up as
+drop-in alternatives once the core loop is proven out.
+
+**v1 targets iPhone only.** The ARCore (Android) package stays in
+`Packages/manifest.json` for later, but every instruction below assumes
+iOS — an iPhone with LiDAR (Pro models) gives the best facility-scan
+quality if you get that far, but any iPhone that supports ARKit works for
+the core shoot loop.
 
 **This is source code, not a buildable project as committed.** Unity
 project files (`.meta` files, scenes, prefabs, the Library cache) don't
@@ -19,13 +27,14 @@ can't catch.
 
 ## Prerequisites
 
-- Unity **2022.3 LTS** (see `ProjectSettings/ProjectVersion.txt`) via Unity Hub
-- iOS Build Support (+ Xcode 15+) and/or Android Build Support (+ NDK/SDK,
-  min API level per the [ARCore requirements](https://developers.google.com/ar/devices))
-- A physical iOS/Android device — AR Foundation does not run in the Editor
-  Game view; use [XR Simulation](https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@5.1/manual/xr-simulation/xr-simulation-overview.html)
-  for basic in-Editor iteration
-- The `server` app running somewhere the device can reach (its LAN IP, not
+- A **Mac** with **Xcode 15+** — required for any iOS build, no way around it
+- Unity **2022.3 LTS** (see `ProjectSettings/ProjectVersion.txt`) via Unity Hub,
+  with **iOS Build Support** added
+- A physical iPhone — AR Foundation does not run in the Editor Game view,
+  and the volume-button trigger only exists on a real device; use
+  [XR Simulation](https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@5.1/manual/xr-simulation/xr-simulation-overview.html)
+  for basic in-Editor iteration of everything else
+- The `server` app running somewhere the phone can reach (its LAN IP, not
   `localhost`, once you're off a simulator)
 
 ## First open
@@ -34,19 +43,17 @@ can't catch.
    packages from `Packages/manifest.json` on first open (may take a few
    minutes).
 2. `Edit > Project Settings > XR Plug-in Management` → enable **Apple
-   ARKit** under the iOS tab and **Google ARCore** under the Android tab.
+   ARKit** under the iOS tab.
 3. `Edit > Project Settings > Player > Other Settings` → confirm **Api
    Compatibility Level** is **.NET Standard 2.1** (the 2022.3 default) —
    `Networking/TrainerLinkClient.cs` and `Recording/MediaUploader.cs` use
    `System.Net.WebSockets.ClientWebSocket` and `File.ReadAllBytesAsync`,
    both of which need it.
-4. `Edit > Project Settings > Player`:
-   - iOS: set Camera Usage Description ("Used for AR training scenarios"),
-     Target minimum iOS version 13.0+, Architecture ARM64.
-   - Android: set Minimum API Level per ARCore's current requirement,
-     enable the Camera permission. If your trigger switch is BLE, also add
-     `BLUETOOTH`/`BLUETOOTH_CONNECT` to a custom `AndroidManifest.xml` under
-     `Assets/Plugins/Android/`.
+4. `Edit > Project Settings > Player > iOS`: set Camera Usage Description
+   ("Used for AR training scenarios"), Target minimum iOS version 13.0+,
+   Architecture ARM64. No extra permission needed for the volume-button
+   trigger (`Assets/Plugins/iOS/ARTVolumeButtonTrigger.mm`) — it only uses
+   the audio session, not the microphone.
 
 ## Scene setup
 
@@ -71,9 +78,12 @@ Create one scene (e.g. `Assets/Scenes/Training.unity`):
      prefab's hit-zone colliders to it, and set **Target Layer Mask** to
      just that layer; add trigger components (below) to **Trigger
      Sources**.
-   - `Input/BluetoothHidTrigger.cs`, `Input/ScreenTapTrigger.cs`,
-     `Input/DesktopTestTrigger.cs` — add whichever you want live; all
-     three can coexist (any of them firing resolves a shot).
+   - `Input/VolumeButtonTrigger.cs` — v1's default; nothing to configure,
+     just add the component (see "Volume button trigger" below for how it
+     works and its one real-device caveat to check first).
+     `Input/BluetoothHidTrigger.cs`, `Input/ScreenTapTrigger.cs`,
+     `Input/DesktopTestTrigger.cs` are also available and can coexist with
+     it — any of them firing resolves a shot.
    - `Recording/PhotoCapture.cs` — assign the `ShotResolver`.
    - `Recording/NullSessionRecorder.cs` (or your own `ISessionRecorder` —
      see that interface's doc comment for the native-plugin path) +
@@ -89,17 +99,38 @@ Create one scene (e.g. `Assets/Scenes/Training.unity`):
    `Text` for the HIT/MISS label; add `Core/HitFeedbackUI.cs` referencing
    both plus the `ShotResolver`.
 
-### Bluetooth trigger switch
+### Volume button trigger (v1 default)
 
-Pair the switch at the OS level first (iOS/Android Bluetooth settings). If
-it's a standard HID button device, create an Input Actions asset (`Assets
-> Create > Input Actions`), add an action, and use `Window > Analysis >
-Input Debugger` while the switch is paired to find its exact binding path
-(often shows up as a generic HID device or gamepad button). Assign that
-Input Action to `BluetoothHidTrigger`'s `Trigger Action` field. A switch
-that speaks custom BLE GATT instead of a HID profile needs a small native
-plugin — not included here; see the class doc comment in
-`Input/BluetoothHidTrigger.cs`.
+Either physical volume button on the iPhone fires a shot — the same
+"volume button as shutter" trick countless iOS camera apps use, so no
+trigger hardware is needed to start testing the core loop. Implementation:
+`Assets/Plugins/iOS/ARTVolumeButtonTrigger.mm` (native — observes
+`AVAudioSession.outputVolume` via KVO, using a hidden `MPVolumeView` to
+both suppress the system volume HUD and reset the level after each press
+so there's always room to detect the next one) plus
+`Input/VolumeButtonTrigger.cs` (thin P/Invoke wrapper). Nothing to
+configure — add the component and it works.
+
+This is a well-known, narrow technique, but — like everything native in
+this project — it hasn't run on a real device yet. The one thing worth
+testing deliberately on first build: press a volume button once right
+after the scene loads and confirm it *doesn't* fire (the plugin ignores
+KVO callbacks for ~0.5s after starting, specifically to swallow the
+spurious one that registering the observer itself triggers); if you get a
+phantom trigger on load, widen that window in the `.mm` file.
+
+### Bluetooth trigger switch (later upgrade, not required to start)
+
+Once the volume-button loop is working end to end and you want a more
+realistic in-hand trigger, pair a switch at the OS level first (iOS
+Bluetooth settings). If it's a standard HID button device, create an
+Input Actions asset (`Assets > Create > Input Actions`), add an action,
+and use `Window > Analysis > Input Debugger` while the switch is paired
+to find its exact binding path (often shows up as a generic HID device or
+gamepad button). Assign that Input Action to `BluetoothHidTrigger`'s
+`Trigger Action` field. A switch that speaks custom BLE GATT instead of a
+HID profile needs a small native plugin — not included here; see the
+class doc comment in `Input/BluetoothHidTrigger.cs`.
 
 ### Target Catalog
 
@@ -133,10 +164,11 @@ Anchor/Finish buttons) — no such screen is included yet.
    and the session ID it gives you (from the live-session page URL).
 3. On the device, enter those two IDs plus the operator's ID (from the
    Operators page) into the join screen and tap Join.
-4. Targets spawn per the scenario; pull the trigger (however it's wired)
-   to fire. Hits/misses show instantly via `HitFeedbackUI`, get logged to
-   `StatsTracker`, streamed live to the trainer console, and a photo is
-   captured and uploaded per shot.
+4. Targets spawn per the scenario; press either volume button (or
+   whatever other trigger you've enabled) to fire. Hits/misses show
+   instantly via `HitFeedbackUI`, get logged to `StatsTracker`, streamed
+   live to the trainer console, and a photo is captured and uploaded per
+   shot.
 5. End the session from either side — the trainer console's End button, or
    a trainer-side `END_SCENARIO` command — flushes any buffered shots and
    disconnects.

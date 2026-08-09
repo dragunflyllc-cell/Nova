@@ -18,14 +18,26 @@ define.
 
 ## Trigger input
 
-Three interchangeable `IShotTrigger` implementations
+Four interchangeable `IShotTrigger` implementations
 (`operator-app/Assets/Scripts/Input/`), any combination of which can be
 enabled at once — whichever fires resolves a shot:
 
-### Bluetooth switch (primary)
+### Volume button (v1 default)
 
-`Input/BluetoothHidTrigger.cs`. Two hardware classes behave very
-differently here:
+`Input/VolumeButtonTrigger.cs` + the native plugin at
+`Assets/Plugins/iOS/ARTVolumeButtonTrigger.mm`. Either physical volume
+button on the iPhone fires a shot — the standard "volume button as
+shutter" technique from iOS camera apps, requiring **no trigger hardware
+at all** to start testing the core loop. iOS-only (no Android
+equivalent); a no-op everywhere else, including the Editor. See
+`operator-app/README.md`'s "Volume button trigger" section for how it
+works and the one thing worth checking on first real-device build.
+
+### Bluetooth switch (upgrade once the core loop is proven out)
+
+`Input/BluetoothHidTrigger.cs`. Not needed to start — wire this up once
+you want a more realistic in-hand trigger than the phone's own volume
+buttons. Two hardware classes behave very differently here:
 
 - **HID-profile switches** (repurposed AV presenter clickers, some
   commercial trigger-switch products) pair at the OS level and then

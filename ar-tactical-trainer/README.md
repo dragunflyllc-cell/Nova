@@ -86,12 +86,14 @@ this environment. Budget Editor time per `operator-app/README.md`.
 
 ## Platform choice
 
-**Unity + AR Foundation** for the operator app: the only realistic option
-covering iOS *and* Android from one codebase (procurement for this kind of
-unit is rarely iOS-only), with physics-based raycast hit detection and
-animated 3D targets "for free" from the engine, and one abstraction
-(AR Foundation) over both ARKit (LiDAR mesh, richer on Apple hardware) and
-ARCore for the facility-scanning requirement.
+**Unity + AR Foundation** for the operator app: covers iOS *and* Android
+from one codebase (procurement for this kind of unit is rarely iOS-only
+long-term), with physics-based raycast hit detection and animated 3D
+targets "for free" from the engine, and one abstraction (AR Foundation)
+over both ARKit (LiDAR mesh, richer on Apple hardware) and ARCore for the
+facility-scanning requirement. **v1 targets iPhone only** — see
+`operator-app/README.md` — but nothing about the architecture is
+iOS-specific; Android is a build-target switch away, not a rewrite.
 
 **Next.js web app** for the trainer console rather than a second native
 app: trainers need it on whatever laptop/tablet is at the range, and a
