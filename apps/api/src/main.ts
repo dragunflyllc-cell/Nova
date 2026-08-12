@@ -13,6 +13,7 @@ import { projectXRoutes } from "./routes/projectx.js";
 import { propFirmRoutes } from "./routes/propfirm.js";
 import { rithmicRoutes } from "./routes/rithmic.js";
 import { ruleRoutes } from "./routes/rules.js";
+import { tournamentRoutes } from "./routes/tournaments.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
 
 const app = Fastify({ logger: true });
@@ -42,6 +43,7 @@ app.register(projectXRoutes);
 app.register(propFirmRoutes);
 app.register(rithmicRoutes);
 app.register(ruleRoutes);
+app.register(tournamentRoutes);
 app.register(waitlistRoutes);
 
 app.listen({ port: env.PORT, host: "0.0.0.0" }).catch((err) => {

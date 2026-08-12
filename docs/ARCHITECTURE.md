@@ -504,6 +504,58 @@ calculation); re-`sync`ing a terminal attempt is a true no-op; and
 `GET /propfirm/ledger` correctly aggregates fee revenue across multiple
 attempts and tracks pending vs. paid payout liability.
 
+## Tournaments
+
+Nova-funded prize-pool events (CLAUDE.md's Tournaments section), scoped
+deliberately to skip the "is this a real-money liability" question the
+prop-firm payout system has to carry: a tournament's `prizePoolCents` is
+Nova's own money (sponsorship/marketing spend, per CLAUDE.md), never
+trader-funded, and CLAUDE.md is explicit that "winning money alone should
+never determine rank" — none of the three metrics is P&L.
+
+**`apps/api/src/tournaments/scoring.ts`** — `computeScore` (pure, one of
+three metrics: `ACCOUNT_XP_GAINED`, `CHARACTER_XP_GAINED` for a named
+NovaDex family, `BEHAVIOR_NET_ADHERENCE`) and `rankEntries` (pure,
+descending by score, ties broken by earlier `joinedAt` so every entry gets
+a distinct rank rather than needing to split a place's prize across ties,
+and only the top 3 ranks are paid via a fixed `PRIZE_DISTRIBUTION`
+50/30/20 split). Both covered by unit tests.
+
+**The anti-cheese property**: `TournamentEntry.startXp` snapshots the
+relevant XP counter at join time, so a metric always measures progress
+made *during* the tournament — an early leveler who joins late doesn't win
+on lifetime total. Verified directly: a user who'd already completed
+quests before joining a second tournament correctly scored `0` (no *new*
+XP since joining), while a fresh join followed by real quest completions
+correctly scored the XP gained.
+
+**Routes** (`apps/api/src/routes/tournaments.ts`): `POST /tournaments`
+(create — no admin role exists yet, same gap as `PayoutRequest` approval,
+so any authenticated user can create one in this v1, flagged rather than
+hidden); `GET /tournaments`; `GET /tournaments/:id` (live-computed
+leaderboard pre-finalization, stored ranks after); `POST
+/tournaments/:id/join` (blocks joining after `endAt`, blocks a duplicate
+entry); `POST /tournaments/:id/sync` (recomputes live scores; once `endAt`
+has passed, finalizes — assigns `rank`/`prizeCents`/`finalScore` to every
+entry and stamps `finalizedAt`; idempotent, a no-op on an already-finalized
+tournament); `GET /me/tournaments`.
+
+**Verified end to end against real seeded Postgres data**: created a
+tournament, had two real users join, drove one of them through real quest
+completions (`POST /me/progression/sync`) to gain account XP, confirmed
+the live leaderboard reflected the correct score and ordering before the
+tournament ended, confirmed `sync` before `endAt` does not finalize,
+waited for a short-window tournament to actually end, confirmed `sync`
+after `endAt` finalizes with the correct 50/30/20 prize split (including a
+tie broken by join order), confirmed a repeat `sync` call is a true no-op,
+and confirmed `GET /me/tournaments` reflects both a finalized and a
+still-active entry correctly.
+
+**What's not built**: no admin/back-office role (same gap as payouts — see
+above), and no web UI. A future admin surface should also let a real
+back-office cancel or edit a tournament before it starts; neither exists
+yet.
+
 ## Web app
 
 `apps/web` is a Next.js app, currently scoped to what's actually usable

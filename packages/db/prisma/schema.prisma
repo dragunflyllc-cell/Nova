@@ -56,6 +56,7 @@ model User {
   questCompletions   QuestCompletion[]
   evaluationAttempts EvaluationAttempt[]
   payoutRequests     PayoutRequest[]
+  tournamentEntries  TournamentEntry[]
 
   @@map("users")
 }
@@ -327,4 +328,72 @@ model PayoutRequest {
   @@index([userId])
   @@index([evaluationAttemptId])
   @@map("payout_requests")
+}
+
+/// What a tournament measures. Deliberately all behavior/progress signals
+/// Nova already has, never raw P&L — CLAUDE.md's Nova Leagues section is
+/// explicit that "winning money alone should never determine rank."
+/// CHARACTER_XP_GAINED requires `Tournament.familyId`; the other two ignore it.
+enum TournamentMetric {
+  ACCOUNT_XP_GAINED
+  CHARACTER_XP_GAINED
+  BEHAVIOR_NET_ADHERENCE
+}
+
+/// A Nova-funded prize pool event (CLAUDE.md's Tournaments section) —
+/// deliberately NOT trader-funded like EvaluationAttempt's fee pool, so a
+/// tournament never raises the same "is this a real-money liability"
+/// question the prop-firm payout system does. Content lives in the
+/// database, not code, since tournaments are inherently time-scheduled
+/// events (unlike EVALUATION_TIERS' fixed list) — apps/api/src/routes/tournaments.ts
+/// owns creation. No admin role exists yet (same gap as PayoutRequest
+/// approval — see its doc comment above), so creation is any authenticated
+/// user's for this v1; that's a real, flagged simplification, not a
+/// production access-control model.
+model Tournament {
+  id             String           @id @default(uuid())
+  name           String
+  description    String
+  metric         TournamentMetric
+  /// packages/nova-dex family id — required for CHARACTER_XP_GAINED, unused
+  /// otherwise (same "content in code, referenced by id" pattern as
+  /// UserCharacter.familyId).
+  familyId       String?
+  startAt        DateTime
+  endAt          DateTime
+  prizePoolCents Int
+  /// Set once POST /tournaments/:id/sync finalizes ranks/prizes after endAt
+  /// has passed — guards against re-finalizing (and re-awarding prizes) on
+  /// a repeat sync call, same idempotency discipline as sync-xp.
+  finalizedAt    DateTime?
+  createdAt      DateTime         @default(now())
+
+  entries TournamentEntry[]
+
+  @@map("tournaments")
+}
+
+/// One user's participation in one Tournament. `startXp` snapshots the
+/// relevant XP counter (User.xp or the named family's UserCharacter.xp) at
+/// join time, so scoring measures progress made DURING the tournament, not
+/// whatever XP a trader already had walking in — an early leveler joining
+/// late shouldn't win on lifetime total. `finalScore`/`rank`/`prizeCents`
+/// are null until the tournament is finalized; before that, standings are
+/// computed live on every GET /tournaments/:id call rather than stored.
+model TournamentEntry {
+  id           String     @id @default(uuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startXp      Int        @default(0)
+  joinedAt     DateTime   @default(now())
+  finalScore   Int?
+  rank         Int?
+  prizeCents   Int?
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@index([userId])
+  @@map("tournament_entries")
 }
