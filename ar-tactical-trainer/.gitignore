@@ -1,0 +1,18 @@
+# TS/Node (root .gitignore already covers node_modules, dist, .env, etc.)
+*.db
+*.db-journal
+server/data/
+server/prisma/test-media/
+server/prisma/test-media-devmode/
+
+# Unity (operator-app) — everything Unity regenerates locally
+operator-app/Library/
+operator-app/Temp/
+operator-app/Obj/
+operator-app/Build/
+operator-app/Builds/
+operator-app/Logs/
+operator-app/UserSettings/
+operator-app/.vs/
+operator-app/*.csproj
+operator-app/*.sln

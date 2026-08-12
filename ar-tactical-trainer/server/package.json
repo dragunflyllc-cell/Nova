@@ -1,0 +1,43 @@
+{
+  "name": "@art/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "pretest": "DATABASE_URL=file:./test.db MEDIA_STORAGE_DIR=./prisma/test-media DISABLE_AUTH=false prisma migrate deploy && DATABASE_URL=file:./test.db DISABLE_AUTH=false tsx prisma/seed.ts",
+    "test": "DATABASE_URL=file:./test.db MEDIA_STORAGE_DIR=./prisma/test-media DISABLE_AUTH=false vitest run",
+    "test:devmode": "DATABASE_URL=file:./test-devmode.db MEDIA_STORAGE_DIR=./prisma/test-media-devmode prisma migrate deploy && DATABASE_URL=file:./test-devmode.db MEDIA_STORAGE_DIR=./prisma/test-media-devmode vitest run --config vitest.devmode.config.ts",
+    "test:all": "pnpm test && pnpm test:devmode",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@art/shared-types": "workspace:*",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/multipart": "^9.0.1",
+    "@fastify/static": "^8.0.2",
+    "@fastify/websocket": "^11.0.2",
+    "@prisma/client": "^5.20.0",
+    "fastify": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.7.5",
+    "@types/ws": "^8.18.1",
+    "prisma": "^5.20.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3",
+    "ws": "^8.21.3"
+  }
+}
