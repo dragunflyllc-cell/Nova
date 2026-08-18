@@ -252,6 +252,57 @@ and community forum instead:
   state-token CSRF protection, and the fill-parsing validation logic
   against representative fixtures.
 
+## Paper trading — Nova as its own data source
+
+Every broker integration above needs someone else's cooperation: Tradovate
+needs a funded account and (maybe) makes end users clear the same bar;
+ProjectX is Topstep-exclusive; Rithmic needs Rithmic to respond. All three
+share a root problem — Nova depends on a third party's account policies
+just to get real fills flowing at all.
+
+Paper trading sidesteps that entirely by making Nova the data source
+instead of a broker. Nova licenses market *data* (not a brokerage
+relationship — a completely different, low-friction industry: no funded
+account, no KYC, no partner program, just an API key), runs its own
+matching engine, and generates the fill itself. There is nothing for a
+user to fabricate, because Nova created the trade, not the user — this
+also happens to be the honest answer to "couldn't someone cheat by typing
+in fake stats," which manual entry can't fully answer.
+
+- `apps/api/src/market-data/yahoo.ts` — delayed (~15-20 min) futures
+  quotes via Yahoo Finance's public chart endpoint. Not an official/
+  licensed feed, but the same free, no-API-key source thousands of
+  open-source tools (`yfinance` and its derivatives) already rely on for
+  exactly this. VERIFIED: the endpoint and response shape are extremely
+  well-documented — one of the most widely reverse-engineered public data
+  sources that exists. NOT VERIFIED IN THIS ENVIRONMENT: this sandbox's
+  network egress policy blocks `query1.finance.yahoo.com` entirely (same
+  "host not in allowlist" behavior as every other external API touched in
+  this project), so it hasn't run against a real response here.
+- `apps/api/src/routes/paper.ts` — one open `PaperPosition` per user at a
+  time (the simplest model that's still genuinely useful, not a full
+  portfolio). `POST /me/paper/open` fetches a live delayed quote and
+  records the position; `POST /me/paper/close` fetches another quote and
+  writes the open+close pair as two `PAPER` `BrokerFill` rows — same
+  buy/sell convention real fills use, so the existing FIFO trade-matching
+  in `trades/matching.ts` treats it exactly like a round-trip trade from
+  any other source, and the existing XP/behavior/quest pipeline picks it
+  up with zero changes (same trick `MANUAL` and every broker adapter use).
+- `apps/web/components/PaperTrading.tsx` — the dashboard panel, positioned
+  above the broker-connection cards as the primary way to start using
+  Nova today, not a fallback buried below them.
+
+**What this is not**: a stand-in for live trading conditions. Delayed
+data is fine for a practice/gamification loop but is explicitly not
+real-time market conditions. And even with real-time data (a further
+upgrade — Databento's live CME Globex feed runs ~$179/month, vastly
+cheaper and lower-friction than any broker relationship but not free),
+a simulated fill is still an approximation: real fills depend on actual
+liquidity, order book depth, and latency that a simulator can't fully
+reproduce. That gap exists in every paper-trading system, including the
+practice/sim modes prop firms themselves offer — it isn't a defect
+specific to this one.
+
 ## Behavior-driven XP
 
 `apps/api/src/behavior/scoring.ts` is the first real implementation of "your

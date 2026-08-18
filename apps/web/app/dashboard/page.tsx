@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { characterStageById } from "@nova/nova-dex";
 import { CharacterCard } from "../../components/CharacterCard";
+import { PaperTrading } from "../../components/PaperTrading";
 import { TradingLog } from "../../components/TradingLog";
 import { useAuth } from "../../lib/auth-context";
 import type { OwnedCharacter } from "../../lib/api";
@@ -125,6 +126,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          <PaperTrading />
           <TradingLog />
         </section>
       )}
