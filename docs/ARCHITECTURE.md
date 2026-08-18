@@ -88,9 +88,15 @@ Tradovate hands back a real `client_id`/`client_secret` immediately. Apps
 built this way (TradersPost, PickMyTrade, TradeSyncer are documented
 examples) don't require their end users to buy the API Access add-on
 themselves — only the one account used to register the OAuth app needs it.
-This is unverified against a real registration (no account has gone
-through the flow yet), so treat it as "very likely correct, confirm on
-first real attempt," not gospel — see `apps/api/src/brokers/tradovate.ts`'s
+**Confirmed directly by Tradovate API Support** (email reply, not just
+inferred from third-party docs): "If you are utilizing OAuth as a way for
+users to authenticate, there is no need for the end-users to subscribe to
+the API add-on subscription. You would just need to ensure that you have
+an API subscription." The registration flow itself (self-attestation,
+usage agreement, `client_id`/`client_secret` issuance) is still unverified
+against a real attempt — no account has actually gone through it yet — so
+treat that part as "very likely correct, confirm on first real attempt,"
+not gospel — see `apps/api/src/brokers/tradovate.ts`'s
 header for exactly what's sourced from where. Once real
 `TRADOVATE_CLIENT_ID`/`TRADOVATE_CLIENT_SECRET`/`TRADOVATE_REDIRECT_URI`
 exist, the adapter needs no code changes — `TOKEN_URL`/`AUTHORIZE_URL`
