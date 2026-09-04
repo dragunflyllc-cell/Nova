@@ -95,10 +95,25 @@ columns, since SQLite has no native JSON type in Prisma).
 Next.js App Router. No client-side state library — server components
 fetch directly from the API on each navigation (`cache: "no-store"`),
 mutations go through Server Actions (`app/**/actions.ts`) that
-`revalidatePath`, and the two genuinely interactive surfaces (the scenario
-target-placement canvas, the live-session WebSocket console) are the only
-`"use client"` components. `lib/ws.ts`'s `useTrainerLink` hook is the
-trainer-side mirror of `operator-app`'s `TrainerLinkClient.cs`.
+`revalidatePath`, and the three genuinely interactive surfaces (the
+scenario target-placement canvas, the live-session WebSocket console, the
+operator simulator) are the only `"use client"` components. `lib/ws.ts`'s
+`useTrainerLink` hook is the trainer-side mirror of `operator-app`'s
+`TrainerLinkClient.cs`.
+
+**`app/sessions/[id]/simulate`** is a browser stand-in for the real
+operator-app phone, for exactly the situation this project was in for a
+while: no Mac/Unity/iPhone access yet, but a need to exercise and
+demonstrate the full live loop anyway. It joins the WS relay as role
+`operator` (`lib/ws.ts`'s `useOperatorLink`, the trainer-side counterpart
+to `useTrainerLink`) and lets a person click "Hit"/"Miss" buttons instead
+of an AR raycast resolving them — everything downstream (relay,
+persistence, stats rollup, after-action review) is the exact same code
+path a real device would hit, including reaction/split-time math computed
+the same way `Stats/StatsTracker.cs` does it. Linked from the live-session
+page; deliberately public like the rest of the device-facing surface (see
+Auth section) since it's standing in for a device that has no login of
+its own.
 
 Every protected page starts with `requireSession()` (`lib/session.ts`),
 which redirects to `/login` if there's no valid access token; the token

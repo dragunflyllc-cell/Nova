@@ -63,10 +63,15 @@ onto the dashboard, no login (there's a "DEV MODE — no login" badge in
 the nav so that's never a silent surprise; see `docs/ARCHITECTURE.md`'s
 Auth section for how to turn real accounts on when you're ready). Add an
 operator to the roster on the Operators page, author a scenario, and
-start a session — the live-session page gives you a session ID the
-operator app joins (see `operator-app/README.md` for the Unity-side
-setup, which needs the Unity Editor and isn't runnable in this
-environment).
+start a session. From the live-session page you can either hand that
+session off to the real operator app (see `operator-app/README.md` for
+the Unity-side setup, which needs the Unity Editor and isn't runnable in
+this environment) — or click **"Open the operator simulator"** to try the
+entire loop right now, in a second browser tab, with no phone or Unity at
+all: it joins the same live relay a real device would, lets you click
+targets to fire simulated hits/misses with real reaction/split-time math,
+and everything it produces flows into after-action review and stats
+exactly like a real session would.
 
 `cd server && pnpm test:all` runs the automated suite (28 tests:
 password/JWT unit tests, integration tests against a real throwaway
